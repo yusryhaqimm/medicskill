@@ -1,0 +1,28 @@
+/* src/index.css */
+.slick-slider {
+  display: block !important;
+  visibility: visible !important;
+}  
+
+/* Keyframes for smooth horizontal scrolling */
+@keyframes scroll {
+0% {
+  transform: translateX(0);
+}
+100% {
+  transform: translateX(-100%);
+}
+}
+
+/* Scroll Container: Hidden overflow */
+.scroll-container {
+display: flex;
+overflow: hidden;
+white-space: nowrap;
+}
+
+/* Scroll Content: Continuous animation */
+.scroll-content {
+display: inline-flex;
+animation: scroll 60s linear infinite;
+}
