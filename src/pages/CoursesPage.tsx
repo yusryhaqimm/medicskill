@@ -62,7 +62,7 @@ const CoursesPage = () => {
     setSelectedDate(null);
     setOpen(false);
   };
-
+  //samole test
   // Handle selecting a date
   const handleDateSelect = (date: string) => {
     setSelectedDate(date);
