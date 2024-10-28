@@ -14,6 +14,8 @@ import {
   DialogActions,
   Button,
   Chip,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 import { useCart } from "../context/CartContext"; // Import CartContext
 
@@ -46,6 +48,7 @@ const CoursesPage = () => {
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null); // Track the selected course
   const [selectedDate, setSelectedDate] = useState<string | null>(null); // Track the selected date
   const [open, setOpen] = useState(false); // Control the dialog state
+  const [snackbarOpen, setSnackbarOpen] = useState(false); // Control the Snackbar
 
   // Handle opening the dialog with course details
   const handleOpen = (course: Course) => {
@@ -65,6 +68,17 @@ const CoursesPage = () => {
     setSelectedDate(date);
   };
 
+  // Handle Snackbar close
+  const handleSnackbarClose = (
+    event?: React.SyntheticEvent | Event,
+    reason?: string
+  ) => {
+    if (reason === "clickaway") {
+      return;
+    }
+    setSnackbarOpen(false);
+  };
+
   // Handle confirming the course selection and adding it to the cart
   const handleConfirm = () => {
     if (selectedCourse && selectedDate) {
@@ -72,6 +86,7 @@ const CoursesPage = () => {
         ...selectedCourse,
         date: selectedDate,
       }); // Add course to the cart with the selected date
+      setSnackbarOpen(true); // Show snackbar notification
       handleClose(); // Close the dialog
     }
   };
@@ -203,6 +218,21 @@ const CoursesPage = () => {
           </>
         )}
       </Dialog>
+
+      {/* Snackbar Notification */}
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={3000}
+        onClose={handleSnackbarClose}
+      >
+        <Alert
+          onClose={handleSnackbarClose}
+          severity="success"
+          sx={{ width: "100%" }}
+        >
+          Course successfully added to cart!
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };
