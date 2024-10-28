@@ -1,5 +1,4 @@
-// src/pages/CoursesPage.tsx
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Box,
   Grid,
@@ -15,6 +14,7 @@ import {
   Button,
   Chip,
 } from "@mui/material";
+import axios from "axios"; // Import axios for API calls
 import { useCart } from "../context/CartContext"; // Import CartContext
 
 // Placeholder course image path
@@ -30,22 +30,29 @@ type Course = {
   availableDates: string[];
 };
 
-// Sample course data
-const courses: Course[] = Array.from({ length: 8 }, (_, index) => ({
-  id: index + 1,
-  title: `Course ${index + 1}`,
-  description: "This is a short description of the course.",
-  trainer: `Trainer ${index + 1}`,
-  price: 100 + index * 50, // Price as a number
-  availableDates: ["12/10/2024", "14/10/2024", "16/10/2024", "20/10/2024"],
-}));
-
 const CoursesPage = () => {
   const { addCourse } = useCart(); // Access the cart context
+  const [courses, setCourses] = useState<Course[]>([]); // Store fetched courses
   const [searchTerm, setSearchTerm] = useState(""); // Track the search term
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null); // Track the selected course
   const [selectedDate, setSelectedDate] = useState<string | null>(null); // Track the selected date
   const [open, setOpen] = useState(false); // Control the dialog state
+
+  // Fetch courses from Django backend API
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        const response = await axios.get<Course[]>(
+          "http://127.0.0.1:8000/api/courses/"
+        ); // Adjust API endpoint if needed
+        setCourses(response.data); // Store courses in state
+      } catch (error) {
+        console.error("Error fetching courses:", error);
+      }
+    };
+
+    fetchCourses(); // Trigger API call on component mount
+  }, []);
 
   // Handle opening the dialog with course details
   const handleOpen = (course: Course) => {
