@@ -12,19 +12,22 @@ const testimonials = [
     quote:
       "This course changed my career! The trainers were exceptional and the content was easy to follow.",
     name: "John Doe",
-    image: "/src/assets/testimonial1.png", // Replace with your image path
+    media: "/src/assets/testimonial1.png", // Replace with your image or video path
+    type: "image", // Specify the media type: "image" or "video"
   },
   {
     quote:
       "Thanks to the hands-on training, I was able to immediately apply what I learned at work.",
     name: "Jane Smith",
-    image: "/src/assets/testimonial2.png", // Replace with your image path
+    media: "/src/assets/testimonial2.mp4", // Replace with your image or video path
+    type: "video", // Specify the media type
   },
   {
     quote:
       "The community and support I received from the trainers were invaluable!",
     name: "Robert Johnson",
-    image: "/src/assets/testimonial3.png", // Replace with your image path
+    media: "/src/assets/testimonial3.png", // Replace with your image or video path
+    type: "image", // Specify the media type
   },
 ];
 
@@ -43,7 +46,7 @@ const TestimonialSection = () => {
         gutterBottom
         sx={{ fontWeight: "bold", marginBottom: "20px" }}
       >
-        What Our Students Say
+        Testimonials
       </Typography>
 
       {/* Swiper Carousel */}
@@ -75,11 +78,39 @@ const TestimonialSection = () => {
                   sx={{
                     display: "flex",
                     alignItems: "center",
+                    justifyContent: "center",
+                    margin: "20px 0",
+                  }}
+                >
+                  {/* Conditionally Render Media */}
+                  {testimonial.type === "image" ? (
+                    <Avatar
+                      src={testimonial.media}
+                      alt={testimonial.name}
+                      sx={{ width: 200, height: 200 }}
+                      variant="rounded"
+                    />
+                  ) : (
+                    <video
+                      src={testimonial.media}
+                      controls
+                      style={{
+                        width: "100%",
+                        maxHeight: "200px",
+                        borderRadius: "8px",
+                      }}
+                    />
+                  )}
+                </Box>
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
                     marginTop: "20px",
                   }}
                 >
                   <Avatar
-                    src={testimonial.image}
+                    src={testimonial.type === "image" ? testimonial.media : ""}
                     alt={testimonial.name}
                     sx={{ width: 50, height: 50, marginRight: "15px" }}
                   />
