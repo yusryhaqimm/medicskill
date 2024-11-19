@@ -1,5 +1,4 @@
-// src/pages/CoursesPage.tsx
-import { useState } from "react";
+import React from "react";
 import {
   Box,
   Grid,
@@ -16,13 +15,12 @@ import {
   Chip,
   Snackbar,
   Alert,
+  Grow,
 } from "@mui/material";
 import { useCart } from "../context/CartContext"; // Import CartContext
 
-// Placeholder course image path
 const courseImage = "/src/assets/courses.webp";
 
-// Define the Course type
 type Course = {
   id: number;
   title: string;
@@ -32,43 +30,43 @@ type Course = {
   availableDates: string[];
 };
 
-// Sample course data
 const courses: Course[] = Array.from({ length: 8 }, (_, index) => ({
   id: index + 1,
   title: `Course ${index + 1}`,
   description: "This is a short description of the course.",
   trainer: `Trainer ${index + 1}`,
-  price: 100 + index * 50, // Price as a number
+  price: 100 + index * 50,
   availableDates: ["12/10/2024", "14/10/2024", "16/10/2024", "20/10/2024"],
 }));
 
 const CoursesPage = () => {
-  const { addCourse } = useCart(); // Access the cart context
-  const [searchTerm, setSearchTerm] = useState(""); // Track the search term
-  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null); // Track the selected course
-  const [selectedDate, setSelectedDate] = useState<string | null>(null); // Track the selected date
-  const [open, setOpen] = useState(false); // Control the dialog state
-  const [snackbarOpen, setSnackbarOpen] = useState(false); // Control the Snackbar
+  const { addCourse } = useCart();
+  const [searchTerm, setSearchTerm] = React.useState("");
+  const [selectedCourse, setSelectedCourse] = React.useState<Course | null>(
+    null
+  );
+  const [selectedDate, setSelectedDate] = React.useState<string | null>(null);
+  const [open, setOpen] = React.useState(false);
+  const [snackbarOpen, setSnackbarOpen] = React.useState(false);
+  const [visibleMessage, setVisibleMessage] = React.useState<string | null>(
+    null
+  );
 
-  // Handle opening the dialog with course details
   const handleOpen = (course: Course) => {
     setSelectedCourse(course);
     setOpen(true);
   };
 
-  // Handle closing the dialog and reset state
   const handleClose = () => {
     setSelectedCourse(null);
     setSelectedDate(null);
     setOpen(false);
   };
-  //samole test
-  // Handle selecting a date
+
   const handleDateSelect = (date: string) => {
     setSelectedDate(date);
   };
 
-  // Handle Snackbar close
   const handleSnackbarClose = (
     _event?: React.SyntheticEvent | Event,
     reason?: string
@@ -79,15 +77,18 @@ const CoursesPage = () => {
     setSnackbarOpen(false);
   };
 
-  // Handle confirming the course selection and adding it to the cart
   const handleConfirm = () => {
     if (selectedCourse && selectedDate) {
       addCourse({
         ...selectedCourse,
         date: selectedDate,
-      }); // Add course to the cart with the selected date
-      setSnackbarOpen(true); // Show snackbar notification
-      handleClose(); // Close the dialog
+      });
+      setVisibleMessage(
+        `Course "${selectedCourse.title}" on ${selectedDate} added to cart!`
+      );
+      setSnackbarOpen(true);
+      setTimeout(() => setVisibleMessage(null), 3000);
+      handleClose();
     }
   };
 
@@ -95,12 +96,9 @@ const CoursesPage = () => {
     <Box
       sx={{ padding: "20px", backgroundColor: "#f5f5f5", minHeight: "100vh" }}
     >
-      {/* Title */}
       <Typography variant="h3" gutterBottom sx={{ textAlign: "center" }}>
         Our Courses
       </Typography>
-
-      {/* Search Bar */}
       <Box
         sx={{ display: "flex", justifyContent: "center", marginBottom: "30px" }}
       >
@@ -112,8 +110,6 @@ const CoursesPage = () => {
           sx={{ width: "50%" }}
         />
       </Box>
-
-      {/* Courses Grid */}
       <Grid container spacing={4}>
         {courses
           .filter((course) =>
@@ -152,7 +148,6 @@ const CoursesPage = () => {
           ))}
       </Grid>
 
-      {/* Course Details Dialog */}
       <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
         {selectedCourse && (
           <>
@@ -180,8 +175,6 @@ const CoursesPage = () => {
               <Typography variant="body2" color="primary" gutterBottom>
                 RM {selectedCourse.price}
               </Typography>
-
-              {/* Available Dates */}
               <Box
                 sx={{
                   display: "flex",
@@ -210,7 +203,7 @@ const CoursesPage = () => {
                 onClick={handleConfirm}
                 variant="contained"
                 color="success"
-                disabled={!selectedDate} // Disable if no date is selected
+                disabled={!selectedDate}
               >
                 Confirm
               </Button>
@@ -230,9 +223,31 @@ const CoursesPage = () => {
           severity="success"
           sx={{ width: "100%" }}
         >
-          Course successfully added to cart!
+          {visibleMessage || "Course added to cart!"}
         </Alert>
       </Snackbar>
+
+      {/* Visible Pop-Up Notification */}
+      {visibleMessage && (
+        <Grow in={true} timeout={500}>
+          <Box
+            sx={{
+              position: "fixed",
+              top: "30%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              padding: "20px",
+              backgroundColor: "#4CAF50",
+              color: "white",
+              borderRadius: "8px",
+              textAlign: "center",
+              boxShadow: "0 4px 10px rgba(0,0,0,0.3)",
+            }}
+          >
+            <Typography variant="h6">{visibleMessage}</Typography>
+          </Box>
+        </Grow>
+      )}
     </Box>
   );
 };
