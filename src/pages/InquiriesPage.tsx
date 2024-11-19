@@ -5,14 +5,26 @@ import {
   Typography,
   TextField,
   Button,
-  Checkbox,
-  FormControlLabel,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Select,
 } from "@mui/material";
 import EmailIcon from "@mui/icons-material/Email";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import PhoneIcon from "@mui/icons-material/Phone";
+import { SetStateAction, useState } from "react";
 
 const InquiriesPage = () => {
+  // State for dropdown selection
+  const [inquiryType, setInquiryType] = useState("");
+
+  const handleInquiryChange = (event: {
+    target: { value: SetStateAction<string> };
+  }) => {
+    setInquiryType(event.target.value);
+  };
+
   return (
     <Box
       sx={{ backgroundColor: "#f5f5f5", minHeight: "100vh", padding: "50px 0" }}
@@ -63,6 +75,19 @@ const InquiriesPage = () => {
         {/* Right Section: Contact Form */}
         <Grid item xs={12} md={5}>
           <form noValidate autoComplete="off">
+            {/* Dropdown for Inquiry Type */}
+            <FormControl fullWidth sx={{ marginBottom: "20px" }} required>
+              <InputLabel>Type of Inquiry</InputLabel>
+              <Select
+                value={inquiryType}
+                onChange={handleInquiryChange}
+                label="Type of Inquiry"
+              >
+                <MenuItem value="general">General Inquiry</MenuItem>
+                <MenuItem value="onsite">Onsite Training</MenuItem>
+              </Select>
+            </FormControl>
+
             <TextField
               label="Name"
               variant="outlined"
@@ -91,11 +116,6 @@ const InquiriesPage = () => {
               margin="normal"
               multiline
               rows={4}
-            />
-            <FormControlLabel
-              control={<Checkbox />}
-              label="General inquiry / Onsite training"
-              sx={{ marginTop: "10px" }}
             />
             <Button
               type="submit"
