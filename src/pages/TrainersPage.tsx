@@ -1,5 +1,5 @@
 // src/pages/TrainersPage.tsx
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Box,
   Grid,
@@ -13,32 +13,42 @@ import {
   DialogContent,
   DialogActions,
   Button,
+  CircularProgress,
 } from "@mui/material";
+import { fetchTrainers, Trainer } from "../api/trainers"; // Import API calls
 
-// Placeholder trainer image
-const trainerImage = "/src/assets/trainer.webp"; // Replace with your uploaded image path
-
-// Sample trainer data
-const trainers = Array.from({ length: 6 }, (_, index) => ({
-  id: index + 1,
-  name: `Trainer ${index + 1}`,
-  specialization: "Blood Expert",
-  fullBio: "Full bio and background",
-}));
+const fallbackTrainerImage = "/trainer.webp"; // Ensure this is in the public folder
 
 const TrainersPage = () => {
-  const [selectedTrainer, setSelectedTrainer] = useState<
-    (typeof trainers)[0] | null
-  >(null);
-  const [open, setOpen] = useState(false); // Track dialog state
+  const [trainers, setTrainers] = useState<Trainer[]>([]);
+  const [selectedTrainer, setSelectedTrainer] = useState<Trainer | null>(null);
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  // Open the dialog with selected trainer details
-  const handleOpen = (trainer: (typeof trainers)[0]) => {
+  // Fetch trainers on component mount
+  useEffect(() => {
+    const loadTrainers = async () => {
+      try {
+        const data = await fetchTrainers(); // Fetch trainers using the API function
+        console.log("Fetched Trainers:", data); // Debug fetched data
+        setTrainers(data);
+      } catch (error) {
+        console.error("Error fetching trainers:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadTrainers();
+  }, []);
+
+  // Handle opening the trainer dialog
+  const handleOpen = (trainer: Trainer) => {
     setSelectedTrainer(trainer);
     setOpen(true);
   };
 
-  // Close the dialog
+  // Handle closing the trainer dialog
   const handleClose = () => {
     setSelectedTrainer(null);
     setOpen(false);
@@ -67,32 +77,38 @@ const TrainersPage = () => {
           </Typography>
         </Box>
 
-        {/* Trainers Grid */}
-        <Grid container spacing={4}>
-          {trainers.map((trainer) => (
-            <Grid item xs={12} sm={6} md={3} key={trainer.id}>
-              <Card
-                sx={{ height: "100%", cursor: "pointer" }}
-                onClick={() => handleOpen(trainer)}
-              >
-                <CardMedia
-                  component="img"
-                  height="140"
-                  image={trainerImage}
-                  alt={trainer.name}
-                />
-                <CardContent>
-                  <Typography variant="h6" gutterBottom>
-                    {trainer.name}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {trainer.specialization}
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-          ))}
-        </Grid>
+        {/* Show loading spinner */}
+        {loading ? (
+          <Box sx={{ textAlign: "center", padding: "50px 0" }}>
+            <CircularProgress />
+          </Box>
+        ) : (
+          <Grid container spacing={4}>
+            {trainers.map((trainer) => (
+              <Grid item xs={12} sm={6} md={3} key={trainer.id}>
+                <Card
+                  sx={{ height: "100%", cursor: "pointer" }}
+                  onClick={() => handleOpen(trainer)}
+                >
+                  <CardMedia
+                    component="img"
+                    height="140"
+                    image={trainer.image || fallbackTrainerImage} // Backend image or fallback
+                    alt={trainer.name}
+                  />
+                  <CardContent>
+                    <Typography variant="h6" gutterBottom>
+                      {trainer.name}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {trainer.short_description}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
+        )}
       </Container>
 
       {/* Trainer Details Dialog */}
@@ -103,7 +119,7 @@ const TrainersPage = () => {
             <DialogContent>
               <Box
                 component="img"
-                src={trainerImage}
+                src={selectedTrainer.image || fallbackTrainerImage} // Backend image or fallback
                 alt={selectedTrainer.name}
                 sx={{
                   width: "100%",
@@ -117,10 +133,10 @@ const TrainersPage = () => {
                 gutterBottom
                 sx={{ marginTop: "20px" }}
               >
-                {selectedTrainer.fullBio}
+                {selectedTrainer.description}
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                Specialization: {selectedTrainer.specialization}
+                Specialization: {selectedTrainer.short_description}
               </Typography>
             </DialogContent>
             <DialogActions>

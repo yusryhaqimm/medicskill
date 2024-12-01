@@ -30,25 +30,25 @@ type Course = {
     name: string;
   };
   price: number;
-  image: string;
+  image: string | null;
   available_dates: { id: string; date: string }[];
 };
 
 const CoursesPage = () => {
   const { addCourse } = useCart();
   const [searchTerm, setSearchTerm] = useState("");
-  const [courses, setCourses] = useState<Course[]>([]); // Fetch dynamically
+  const [courses, setCourses] = useState<Course[]>([]); // Dynamic courses
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [visibleMessage, setVisibleMessage] = useState<string | null>(null);
 
-  // Fetch courses from the backend
+  // Fetch courses from backend
   useEffect(() => {
     const fetchCourses = async () => {
       try {
-        const response = await axios.get("http://127.0.0.1:8000/api/courses/"); // Corrected endpoint
+        const response = await axios.get("http://127.0.0.1:8000/api/courses/");
         setCourses(response.data);
       } catch (error) {
         console.error("Error fetching courses:", error);
@@ -77,9 +77,7 @@ const CoursesPage = () => {
     _event?: React.SyntheticEvent | Event,
     reason?: string
   ) => {
-    if (reason === "clickaway") {
-      return;
-    }
+    if (reason === "clickaway") return;
     setSnackbarOpen(false);
   };
 
@@ -130,7 +128,10 @@ const CoursesPage = () => {
                 <CardMedia
                   component="img"
                   height="140"
-                  image={`http://127.0.0.1:8000${course.image}`} // Adjust image URL
+                  image={
+                    course.image ||
+                    "http://127.0.0.1:8000/media/default-course.jpg"
+                  } // Use backend image or fallback
                   alt={course.title}
                 />
                 <CardContent>
@@ -163,7 +164,10 @@ const CoursesPage = () => {
             <DialogContent>
               <Box
                 component="img"
-                src={`http://127.0.0.1:8000${selectedCourse.image}`} // Adjust image URL
+                src={
+                  selectedCourse.image ||
+                  "http://127.0.0.1:8000/media/default-course.jpg"
+                } // Use backend image or fallback
                 alt={selectedCourse.title}
                 sx={{
                   width: "100%",
