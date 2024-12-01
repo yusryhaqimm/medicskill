@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Grid,
@@ -18,39 +18,45 @@ import {
   Grow,
 } from "@mui/material";
 import { useCart } from "../context/CartContext"; // Import CartContext
-
-const courseImage = "/src/assets/courses.webp";
+import axios from "axios"; // Import Axios for API calls
 
 type Course = {
-  id: number;
+  id: string;
   title: string;
+  short_description: string;
   description: string;
-  trainer: string;
+  instructor: {
+    id: string;
+    name: string;
+  };
   price: number;
-  availableDates: string[];
+  image: string;
+  available_dates: { id: string; date: string }[];
 };
-
-const courses: Course[] = Array.from({ length: 8 }, (_, index) => ({
-  id: index + 1,
-  title: `Course ${index + 1}`,
-  description: "This is a short description of the course.",
-  trainer: `Trainer ${index + 1}`,
-  price: 100 + index * 50,
-  availableDates: ["12/10/2024", "14/10/2024", "16/10/2024", "20/10/2024"],
-}));
 
 const CoursesPage = () => {
   const { addCourse } = useCart();
-  const [searchTerm, setSearchTerm] = React.useState("");
-  const [selectedCourse, setSelectedCourse] = React.useState<Course | null>(
-    null
-  );
-  const [selectedDate, setSelectedDate] = React.useState<string | null>(null);
-  const [open, setOpen] = React.useState(false);
-  const [snackbarOpen, setSnackbarOpen] = React.useState(false);
-  const [visibleMessage, setVisibleMessage] = React.useState<string | null>(
-    null
-  );
+  const [searchTerm, setSearchTerm] = useState("");
+  const [courses, setCourses] = useState<Course[]>([]); // Fetch dynamically
+  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [open, setOpen] = useState(false);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [visibleMessage, setVisibleMessage] = useState<string | null>(null);
+
+  // Fetch courses from the backend
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        const response = await axios.get("http://127.0.0.1:8000/api/courses/"); // Corrected endpoint
+        setCourses(response.data);
+      } catch (error) {
+        console.error("Error fetching courses:", error);
+      }
+    };
+
+    fetchCourses();
+  }, []);
 
   const handleOpen = (course: Course) => {
     setSelectedCourse(course);
@@ -124,16 +130,16 @@ const CoursesPage = () => {
                 <CardMedia
                   component="img"
                   height="140"
-                  image={courseImage}
+                  image={`http://127.0.0.1:8000${course.image}`} // Adjust image URL
                   alt={course.title}
                 />
                 <CardContent>
                   <Typography variant="h6">{course.title}</Typography>
                   <Typography variant="body2" color="text.secondary" paragraph>
-                    {course.description}
+                    {course.short_description}
                   </Typography>
                   <Typography variant="subtitle2">
-                    Trainer: {course.trainer}
+                    Trainer: {course.instructor.name}
                   </Typography>
                   <Typography
                     variant="subtitle1"
@@ -157,7 +163,7 @@ const CoursesPage = () => {
             <DialogContent>
               <Box
                 component="img"
-                src={courseImage}
+                src={`http://127.0.0.1:8000${selectedCourse.image}`} // Adjust image URL
                 alt={selectedCourse.title}
                 sx={{
                   width: "100%",
@@ -170,7 +176,7 @@ const CoursesPage = () => {
                 {selectedCourse.description}
               </Typography>
               <Typography variant="body2" color="text.secondary" gutterBottom>
-                Trainer: {selectedCourse.trainer}
+                Trainer: {selectedCourse.instructor.name}
               </Typography>
               <Typography variant="body2" color="primary" gutterBottom>
                 RM {selectedCourse.price}
@@ -183,12 +189,12 @@ const CoursesPage = () => {
                   flexWrap: "wrap",
                 }}
               >
-                {selectedCourse.availableDates.map((date) => (
+                {selectedCourse.available_dates.map((date) => (
                   <Chip
-                    key={date}
-                    label={date}
-                    color={selectedDate === date ? "primary" : "default"}
-                    onClick={() => handleDateSelect(date)}
+                    key={date.id}
+                    label={date.date}
+                    color={selectedDate === date.date ? "primary" : "default"}
+                    onClick={() => handleDateSelect(date.date)}
                     clickable
                     sx={{ cursor: "pointer" }}
                   />
@@ -212,7 +218,6 @@ const CoursesPage = () => {
         )}
       </Dialog>
 
-      {/* Snackbar Notification */}
       <Snackbar
         open={snackbarOpen}
         autoHideDuration={3000}
@@ -227,7 +232,6 @@ const CoursesPage = () => {
         </Alert>
       </Snackbar>
 
-      {/* Visible Pop-Up Notification */}
       {visibleMessage && (
         <Grow in={true} timeout={500}>
           <Box
