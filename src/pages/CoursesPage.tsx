@@ -15,10 +15,13 @@ import {
   Chip,
   Snackbar,
   Alert,
-  Grow,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from "@mui/material";
-import { useCart } from "../context/CartContext"; // Import CartContext
-import axios from "axios"; // Import Axios for API calls
+import { useCart } from "../context/CartContext";
+import axios from "axios";
 
 type Course = {
   id: string;
@@ -29,22 +32,38 @@ type Course = {
     id: string;
     name: string;
   };
-  price: number;
   image: string | null;
-  available_dates: { id: string; date: string }[];
+  available_dates: {
+    id: string;
+    date: string;
+    pricing: {
+      id: string;
+      location: {
+        id: string;
+        name: string;
+        address: string;
+      };
+      price: number;
+    }[];
+  }[];
 };
 
 const CoursesPage = () => {
   const { addCourse } = useCart();
   const [searchTerm, setSearchTerm] = useState("");
-  const [courses, setCourses] = useState<Course[]>([]); // Dynamic courses
+  const [courses, setCourses] = useState<Course[]>([]);
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
+  const [pricingOptions, setPricingOptions] = useState<
+    Course["available_dates"][number]["pricing"]
+  >([]);
+  const [price, setPrice] = useState<number | null>(null);
   const [open, setOpen] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [visibleMessage, setVisibleMessage] = useState<string | null>(null);
 
-  // Fetch courses from backend
+  // Fetch courses from the backend
   useEffect(() => {
     const fetchCourses = async () => {
       try {
@@ -66,11 +85,58 @@ const CoursesPage = () => {
   const handleClose = () => {
     setSelectedCourse(null);
     setSelectedDate(null);
+    setSelectedLocation(null);
+    setPricingOptions([]);
+    setPrice(null);
     setOpen(false);
   };
 
-  const handleDateSelect = (date: string) => {
-    setSelectedDate(date);
+  const handleDateSelect = (dateId: string) => {
+    setSelectedDate(dateId);
+    setSelectedLocation(null);
+    setPrice(null);
+
+    const selectedDate = selectedCourse?.available_dates.find(
+      (date) => date.id === dateId
+    );
+
+    if (selectedDate) {
+      setPricingOptions(selectedDate.pricing);
+    } else {
+      console.error("No pricing available for the selected date.");
+    }
+  };
+
+  const handleLocationSelect = (locationId: string) => {
+    setSelectedLocation(locationId);
+
+    const selectedPricing = pricingOptions.find(
+      (pricing) => pricing.location.id === locationId
+    );
+
+    if (selectedPricing) {
+      setPrice(Number(selectedPricing.price)); // Ensure price is a number
+    } else {
+      console.error("Selected location does not have a pricing entry.");
+      setPrice(null);
+    }
+  };
+
+  const handleConfirm = () => {
+    if (selectedCourse && selectedDate && selectedLocation && price !== null) {
+      addCourse({
+        ...selectedCourse,
+        date: selectedDate,
+        location: selectedLocation,
+        price,
+      });
+      setVisibleMessage(
+        `Course "${selectedCourse.title}" added to cart with date and location!`
+      );
+      setSnackbarOpen(true);
+      setTimeout(() => setVisibleMessage(null), 3000);
+      handleClose();
+    }
   };
 
   const handleSnackbarClose = (
@@ -79,21 +145,6 @@ const CoursesPage = () => {
   ) => {
     if (reason === "clickaway") return;
     setSnackbarOpen(false);
-  };
-
-  const handleConfirm = () => {
-    if (selectedCourse && selectedDate) {
-      addCourse({
-        ...selectedCourse,
-        date: selectedDate,
-      });
-      setVisibleMessage(
-        `Course "${selectedCourse.title}" on ${selectedDate} added to cart!`
-      );
-      setSnackbarOpen(true);
-      setTimeout(() => setVisibleMessage(null), 3000);
-      handleClose();
-    }
   };
 
   return (
@@ -131,7 +182,7 @@ const CoursesPage = () => {
                   image={
                     course.image ||
                     "http://127.0.0.1:8000/media/default-course.jpg"
-                  } // Use backend image or fallback
+                  }
                   alt={course.title}
                 />
                 <CardContent>
@@ -141,13 +192,6 @@ const CoursesPage = () => {
                   </Typography>
                   <Typography variant="subtitle2">
                     Trainer: {course.instructor.name}
-                  </Typography>
-                  <Typography
-                    variant="subtitle1"
-                    color="primary"
-                    sx={{ marginTop: "8px" }}
-                  >
-                    RM {course.price}
                   </Typography>
                 </CardContent>
               </Card>
@@ -167,13 +211,14 @@ const CoursesPage = () => {
                 src={
                   selectedCourse.image ||
                   "http://127.0.0.1:8000/media/default-course.jpg"
-                } // Use backend image or fallback
+                }
                 alt={selectedCourse.title}
                 sx={{
                   width: "100%",
                   maxWidth: "300px",
-                  margin: "0 auto",
+                  margin: "20px auto",
                   display: "block",
+                  borderRadius: "8px",
                 }}
               />
               <Typography variant="body1" sx={{ marginTop: "20px" }}>
@@ -182,28 +227,61 @@ const CoursesPage = () => {
               <Typography variant="body2" color="text.secondary" gutterBottom>
                 Trainer: {selectedCourse.instructor.name}
               </Typography>
-              <Typography variant="body2" color="primary" gutterBottom>
-                RM {selectedCourse.price}
-              </Typography>
-              <Box
-                sx={{
-                  display: "flex",
-                  gap: "10px",
-                  marginTop: "20px",
-                  flexWrap: "wrap",
-                }}
-              >
-                {selectedCourse.available_dates.map((date) => (
-                  <Chip
-                    key={date.id}
-                    label={date.date}
-                    color={selectedDate === date.date ? "primary" : "default"}
-                    onClick={() => handleDateSelect(date.date)}
-                    clickable
-                    sx={{ cursor: "pointer" }}
-                  />
-                ))}
+              <Box sx={{ marginTop: "20px" }}>
+                <Typography variant="subtitle1">Select a Session:</Typography>
+                <Box sx={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+                  {selectedCourse.available_dates.map((date) => (
+                    <Chip
+                      key={date.id}
+                      label={date.date}
+                      color={selectedDate === date.id ? "primary" : "default"}
+                      onClick={() => handleDateSelect(date.id)}
+                      clickable
+                      sx={{ cursor: "pointer" }}
+                    />
+                  ))}
+                </Box>
               </Box>
+
+              {pricingOptions.length > 0 && (
+                <Box sx={{ marginTop: "20px" }}>
+                  <Typography variant="subtitle1">
+                    Select a Location:
+                  </Typography>
+                  <FormControl fullWidth>
+                    <InputLabel id="location-label">Location</InputLabel>
+                    <Select
+                      labelId="location-label"
+                      value={selectedLocation || ""}
+                      onChange={(e) => handleLocationSelect(e.target.value)}
+                    >
+                      {pricingOptions.map((pricing) => (
+                        <MenuItem key={pricing.id} value={pricing.location.id}>
+                          {pricing.location.name} ({pricing.location.address})
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Box>
+              )}
+
+              {price !== null && typeof price === "number" ? (
+                <Typography
+                  variant="h6"
+                  color="primary"
+                  sx={{ marginTop: "20px" }}
+                >
+                  Price: RM {price.toFixed(2)}
+                </Typography>
+              ) : (
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ marginTop: "20px" }}
+                >
+                  Select a location to view the price.
+                </Typography>
+              )}
             </DialogContent>
             <DialogActions>
               <Button onClick={handleClose} color="secondary">
@@ -213,7 +291,7 @@ const CoursesPage = () => {
                 onClick={handleConfirm}
                 variant="contained"
                 color="success"
-                disabled={!selectedDate}
+                disabled={!selectedDate || !selectedLocation || price === null}
               >
                 Confirm
               </Button>
@@ -235,27 +313,6 @@ const CoursesPage = () => {
           {visibleMessage || "Course added to cart!"}
         </Alert>
       </Snackbar>
-
-      {visibleMessage && (
-        <Grow in={true} timeout={500}>
-          <Box
-            sx={{
-              position: "fixed",
-              top: "30%",
-              left: "50%",
-              transform: "translate(-50%, -50%)",
-              padding: "20px",
-              backgroundColor: "#4CAF50",
-              color: "white",
-              borderRadius: "8px",
-              textAlign: "center",
-              boxShadow: "0 4px 10px rgba(0,0,0,0.3)",
-            }}
-          >
-            <Typography variant="h6">{visibleMessage}</Typography>
-          </Box>
-        </Grow>
-      )}
     </Box>
   );
 };
