@@ -1,4 +1,3 @@
-import React, { useEffect, useState } from "react";
 import {
   Box,
   Grid,
@@ -15,36 +14,33 @@ import {
   Chip,
   Snackbar,
   Alert,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
+  CircularProgress,
 } from "@mui/material";
 import { useCart } from "../context/CartContext";
+import { useEffect, useState } from "react";
 import axios from "axios";
 
 type Course = {
   id: string;
   title: string;
+  category: string;
   short_description: string;
   description: string;
+  meta_description?: string;
   instructor: {
     id: string;
     name: string;
   };
   image: string | null;
-  available_dates: {
+  sessions: {
     id: string;
     date: string;
-    pricing: {
+    location: {
       id: string;
-      location: {
-        id: string;
-        name: string;
-        address: string;
-      };
-      price: number;
-    }[];
+      name: string;
+      address: string;
+    };
+    price: string; // Price is a string in the backend response
   }[];
 };
 
@@ -53,24 +49,28 @@ const CoursesPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [courses, setCourses] = useState<Course[]>([]);
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
-  const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
-  const [pricingOptions, setPricingOptions] = useState<
-    Course["available_dates"][number]["pricing"]
-  >([]);
+  const [filteredSessions, setFilteredSessions] = useState<Course["sessions"]>(
+    []
+  );
+  const [selectedSession, setSelectedSession] = useState<string | null>(null);
   const [price, setPrice] = useState<number | null>(null);
   const [open, setOpen] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [visibleMessage, setVisibleMessage] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  // Fetch courses from the backend
   useEffect(() => {
     const fetchCourses = async () => {
       try {
-        const response = await axios.get("http://127.0.0.1:8000/api/courses/");
+        const response = await axios.get<Course[]>(
+          "http://127.0.0.1:8000/api/courses/"
+        );
         setCourses(response.data);
       } catch (error) {
         console.error("Error fetching courses:", error);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -84,55 +84,53 @@ const CoursesPage = () => {
 
   const handleClose = () => {
     setSelectedCourse(null);
-    setSelectedDate(null);
     setSelectedLocation(null);
-    setPricingOptions([]);
+    setFilteredSessions([]);
+    setSelectedSession(null);
     setPrice(null);
     setOpen(false);
-  };
-
-  const handleDateSelect = (dateId: string) => {
-    setSelectedDate(dateId);
-    setSelectedLocation(null);
-    setPrice(null);
-
-    const selectedDate = selectedCourse?.available_dates.find(
-      (date) => date.id === dateId
-    );
-
-    if (selectedDate) {
-      setPricingOptions(selectedDate.pricing);
-    } else {
-      console.error("No pricing available for the selected date.");
-    }
   };
 
   const handleLocationSelect = (locationId: string) => {
     setSelectedLocation(locationId);
 
-    const selectedPricing = pricingOptions.find(
-      (pricing) => pricing.location.id === locationId
-    );
+    const filtered =
+      selectedCourse?.sessions.filter(
+        (session) => session.location.id === locationId
+      ) || [];
+    setFilteredSessions(filtered);
 
-    if (selectedPricing) {
-      setPrice(Number(selectedPricing.price)); // Ensure price is a number
+    setSelectedSession(null);
+    setPrice(null);
+  };
+
+  const handleSessionSelect = (sessionId: string) => {
+    const session = filteredSessions.find((s) => s.id === sessionId);
+    if (session) {
+      setSelectedSession(sessionId);
+      setPrice(parseFloat(session.price)); // Convert price to number
     } else {
-      console.error("Selected location does not have a pricing entry.");
+      console.error("Invalid session selection.");
+      setSelectedSession(null);
       setPrice(null);
     }
   };
 
   const handleConfirm = () => {
-    if (selectedCourse && selectedDate && selectedLocation && price !== null) {
+    if (
+      selectedCourse &&
+      selectedLocation &&
+      selectedSession &&
+      price !== null
+    ) {
       addCourse({
-        ...selectedCourse,
-        date: selectedDate,
+        courseId: selectedCourse.id,
+        title: selectedCourse.title,
         location: selectedLocation,
+        sessionId: selectedSession,
         price,
       });
-      setVisibleMessage(
-        `Course "${selectedCourse.title}" added to cart with date and location!`
-      );
+      setVisibleMessage(`Course "${selectedCourse.title}" added to cart!`);
       setSnackbarOpen(true);
       setTimeout(() => setVisibleMessage(null), 3000);
       handleClose();
@@ -165,39 +163,63 @@ const CoursesPage = () => {
           sx={{ width: "50%" }}
         />
       </Box>
-      <Grid container spacing={4}>
-        {courses
-          .filter((course) =>
-            course.title.toLowerCase().includes(searchTerm.toLowerCase())
-          )
-          .map((course) => (
-            <Grid item xs={12} sm={6} md={3} key={course.id}>
-              <Card
-                sx={{ cursor: "pointer", height: "100%" }}
-                onClick={() => handleOpen(course)}
-              >
-                <CardMedia
-                  component="img"
-                  height="140"
-                  image={
-                    course.image ||
-                    "http://127.0.0.1:8000/media/default-course.jpg"
-                  }
-                  alt={course.title}
-                />
-                <CardContent>
-                  <Typography variant="h6">{course.title}</Typography>
-                  <Typography variant="body2" color="text.secondary" paragraph>
-                    {course.short_description}
-                  </Typography>
-                  <Typography variant="subtitle2">
-                    Trainer: {course.instructor.name}
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-          ))}
-      </Grid>
+      {loading ? (
+        <Box
+          sx={{ display: "flex", justifyContent: "center", marginTop: "20px" }}
+        >
+          <CircularProgress />
+        </Box>
+      ) : (
+        <Grid container spacing={4}>
+          {courses.length === 0 ? (
+            <Typography
+              variant="body1"
+              sx={{ textAlign: "center", width: "100%" }}
+            >
+              No courses available at the moment.
+            </Typography>
+          ) : (
+            courses
+              .filter((course) =>
+                course.title.toLowerCase().includes(searchTerm.toLowerCase())
+              )
+              .map((course) => (
+                <Grid item xs={12} sm={6} md={3} key={course.id}>
+                  <Card
+                    sx={{ cursor: "pointer", height: "100%" }}
+                    onClick={() => handleOpen(course)}
+                  >
+                    <CardMedia
+                      component="img"
+                      height="140"
+                      image={
+                        course.image ||
+                        "http://127.0.0.1:8000/media/default-course.jpg"
+                      }
+                      alt={course.title}
+                    />
+                    <CardContent>
+                      <Typography variant="h6">{course.title}</Typography>
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        paragraph
+                      >
+                        {course.short_description}
+                      </Typography>
+                      <Typography variant="subtitle2">
+                        Category: {course.category}
+                      </Typography>
+                      <Typography variant="subtitle2">
+                        Trainer: {course.instructor.name}
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              ))
+          )}
+        </Grid>
+      )}
 
       <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
         {selectedCourse && (
@@ -216,7 +238,7 @@ const CoursesPage = () => {
                 sx={{
                   width: "100%",
                   maxWidth: "300px",
-                  margin: "20px auto",
+                  margin: "0 auto",
                   display: "block",
                   borderRadius: "8px",
                 }}
@@ -227,45 +249,66 @@ const CoursesPage = () => {
               <Typography variant="body2" color="text.secondary" gutterBottom>
                 Trainer: {selectedCourse.instructor.name}
               </Typography>
+
               <Box sx={{ marginTop: "20px" }}>
-                <Typography variant="subtitle1">Select a Session:</Typography>
-                <Box sx={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-                  {selectedCourse.available_dates.map((date) => (
-                    <Chip
-                      key={date.id}
-                      label={date.date}
-                      color={selectedDate === date.id ? "primary" : "default"}
-                      onClick={() => handleDateSelect(date.id)}
-                      clickable
-                      sx={{ cursor: "pointer" }}
-                    />
-                  ))}
+                <Typography variant="subtitle1">Select a Location:</Typography>
+                <Box
+                  sx={{
+                    display: "flex",
+                    gap: "10px",
+                    flexWrap: "wrap",
+                    marginTop: "10px",
+                  }}
+                >
+                  {Array.from(
+                    new Set(
+                      selectedCourse.sessions.map(
+                        (session) => session.location.id
+                      )
+                    )
+                  ).map((locationId) => {
+                    const location = selectedCourse.sessions.find(
+                      (session) => session.location.id === locationId
+                    )?.location;
+                    return (
+                      <Chip
+                        key={locationId}
+                        label={`${location?.name} (${location?.address})`}
+                        color={
+                          selectedLocation === locationId
+                            ? "primary"
+                            : "default"
+                        }
+                        onClick={() => handleLocationSelect(locationId)}
+                        clickable
+                        sx={{ cursor: "pointer" }}
+                      />
+                    );
+                  })}
                 </Box>
               </Box>
 
-              {pricingOptions.length > 0 && (
+              {selectedLocation && (
                 <Box sx={{ marginTop: "20px" }}>
-                  <Typography variant="subtitle1">
-                    Select a Location:
-                  </Typography>
-                  <FormControl fullWidth>
-                    <InputLabel id="location-label">Location</InputLabel>
-                    <Select
-                      labelId="location-label"
-                      value={selectedLocation || ""}
-                      onChange={(e) => handleLocationSelect(e.target.value)}
-                    >
-                      {pricingOptions.map((pricing) => (
-                        <MenuItem key={pricing.id} value={pricing.location.id}>
-                          {pricing.location.name} ({pricing.location.address})
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
+                  <Typography variant="subtitle1">Select a Session:</Typography>
+                  <Box sx={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+                    {filteredSessions.map((session) => (
+                      <Chip
+                        key={session.id}
+                        label={session.date}
+                        color={
+                          selectedSession === session.id ? "primary" : "default"
+                        }
+                        onClick={() => handleSessionSelect(session.id)}
+                        clickable
+                        sx={{ cursor: "pointer" }}
+                      />
+                    ))}
+                  </Box>
                 </Box>
               )}
 
-              {price !== null && typeof price === "number" ? (
+              {price !== null ? (
                 <Typography
                   variant="h6"
                   color="primary"
@@ -279,7 +322,7 @@ const CoursesPage = () => {
                   color="text.secondary"
                   sx={{ marginTop: "20px" }}
                 >
-                  Select a location to view the price.
+                  Select a location and session to view the price.
                 </Typography>
               )}
             </DialogContent>
@@ -291,7 +334,9 @@ const CoursesPage = () => {
                 onClick={handleConfirm}
                 variant="contained"
                 color="success"
-                disabled={!selectedDate || !selectedLocation || price === null}
+                disabled={
+                  !selectedLocation || !selectedSession || price === null
+                }
               >
                 Confirm
               </Button>
