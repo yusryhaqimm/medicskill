@@ -1,4 +1,3 @@
-// src/pages/HomePage.tsx
 import { Container, Box } from "@mui/material";
 import HeroSection from "../components/HeroSection";
 import AboutSection from "../components/AboutSection";
@@ -11,20 +10,27 @@ import ClientSection from "../components/ClientSection";
 
 const HomePage = () => {
   return (
-    <Box sx={{ width: "100%", padding: "0", margin: "0" }}>
+    <Box sx={{ width: "100%", padding: 0, margin: 0 }}>
       {/* Full-width Hero Section */}
       <Box sx={{ width: "100%" }}>
         <HeroSection />
       </Box>
 
       {/* Centered Content inside a Container */}
-      <Container maxWidth="lg">
+      <Container maxWidth="lg" sx={{ padding: "40px 0" }}>
+        {/* About Section */}
         <AboutSection />
+        {/* How It Works Section */}
         <HowItWork />
+        {/* Courses Section */}
         <CoursesSection />
+        {/* Trainers Section */}
         <TrainersSection />
+        {/* Highlights Section */}
         <HighlightSection />
+        {/* Testimonials Section */}
         <TestimonialSection />
+        {/* Clients Section */}
         <ClientSection />
       </Container>
     </Box>

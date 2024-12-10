@@ -1,23 +1,56 @@
-// src/components/HighlightSection.tsx
+import { useEffect, useState } from "react";
 import { Box, Typography } from "@mui/material";
 import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import "swiper/css/pagination";
 import "swiper/css/navigation";
 import { Navigation, Pagination } from "swiper/modules";
+import axios from "axios";
 
-// Placeholder content
-const highlights = [
-  { type: "image", src: "/src/assets/highlight1.png", alt: "Highlight 1" },
-  { type: "image", src: "/src/assets/highlight2.png", alt: "Highlight 2" },
-  {
-    type: "video",
-    src: "/src/assets/highlight-video.mp4",
-    alt: "Highlight Video",
-  },
-];
+// Define the type for highlight items
+type HighlightItem = {
+  id: number;
+  type: "image" | "video"; // Either "image" or "video"
+  src: string; // Media URL
+  alt: string; // Alt text for images or description for videos
+};
 
 const HighlightSection = () => {
+  const [highlights, setHighlights] = useState<HighlightItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchHighlights = async () => {
+      try {
+        const response = await axios.get(
+          "http://127.0.0.1:8000/api/homepage/highlights/"
+        );
+        const data = response.data.map((item: any) => ({
+          id: item.id,
+          type: item.media.endsWith(".mp4") ? "video" : "image",
+          src: item.media,
+          alt: item.title || "Highlight", // Default alt text if not provided
+        }));
+        setHighlights(data);
+      } catch (error) {
+        console.error("Error fetching highlights:", error);
+        setHighlights([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchHighlights();
+  }, []);
+
+  if (loading) {
+    return <div>Loading highlights...</div>;
+  }
+
+  if (highlights.length === 0) {
+    return <div>No highlights available.</div>;
+  }
+
   return (
     <Box
       sx={{
@@ -44,8 +77,8 @@ const HighlightSection = () => {
         modules={[Navigation, Pagination]}
         style={{ padding: "20px 0", maxWidth: "800px", margin: "auto" }}
       >
-        {highlights.map((highlight, index) => (
-          <SwiperSlide key={index}>
+        {highlights.map((highlight) => (
+          <SwiperSlide key={highlight.id}>
             {highlight.type === "image" ? (
               <img
                 src={highlight.src}
