@@ -6,42 +6,167 @@ import {
   Card,
   CardContent,
   CardMedia,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Chip,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 import { Swiper, SwiperSlide } from "swiper/react";
+import { Navigation, Pagination } from "swiper/modules";
 import "swiper/css";
+import "swiper/css/navigation";
+import "swiper/css/pagination";
 import { Link } from "react-router-dom";
+import { useCart } from "../context/CartContext";
+import { useState, useEffect } from "react";
+import axios from "axios";
 
-// Placeholder image path
-const courseImage = "/src/assets/courses.webp";
+// Define the type for a course
+interface Course {
+  id: string;
+  title: string;
+  category: string;
+  short_description: string;
+  description: string;
+  meta_description: string;
+  image: string;
+  instructor: {
+    id: string;
+    name: string;
+  };
+  sessions: {
+    id: string;
+    date: string;
+    location: {
+      id: string;
+      name: string;
+      address: string;
+    };
+    price: string;
+    expired: boolean;
+  }[];
+  upcoming: boolean;
+}
 
-const courses = [
-  {
-    title: "Course 1",
-    description: "Short description",
-    price: "Price (if applicable)",
-    reviews: "Ratings/Reviews",
-  },
-  {
-    title: "Course 2",
-    description: "Short description",
-    price: "Price (if applicable)",
-    reviews: "Ratings/Reviews",
-  },
-  {
-    title: "Course 3",
-    description: "Short description",
-    price: "Price (if applicable)",
-    reviews: "Ratings/Reviews",
-  },
-  {
-    title: "Course 4",
-    description: "Short description",
-    price: "Price (if applicable)",
-    reviews: "Ratings/Reviews",
-  },
-];
+const placeholderImage = "/src/assets/courses.webp";
 
 const CoursesSection = () => {
+  const { addCourse } = useCart();
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+  const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
+  const [filteredSessions, setFilteredSessions] = useState<Course["sessions"]>(
+    []
+  );
+  const [selectedSession, setSelectedSession] = useState<string | null>(null);
+  const [price, setPrice] = useState<number | null>(null);
+  const [open, setOpen] = useState(false);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [visibleMessage, setVisibleMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchUpcomingCourses = async () => {
+      try {
+        const response = await axios.get<Course[]>(
+          "http://127.0.0.1:8000/api/upcoming_courses/"
+        );
+        setCourses(response.data);
+      } catch (error) {
+        console.error("Error fetching upcoming courses:", error);
+        setCourses([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUpcomingCourses();
+  }, []);
+
+  const handleOpen = (course: Course) => {
+    setSelectedCourse(course);
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setSelectedCourse(null);
+    setSelectedLocation(null);
+    setFilteredSessions([]);
+    setSelectedSession(null);
+    setPrice(null);
+    setOpen(false);
+  };
+
+  const handleLocationSelect = (locationId: string) => {
+    setSelectedLocation(locationId);
+    const filtered =
+      selectedCourse?.sessions.filter(
+        (session) => session.location.id === locationId
+      ) || [];
+    setFilteredSessions(filtered);
+    setSelectedSession(null);
+    setPrice(null);
+  };
+
+  const handleSessionSelect = (sessionId: string) => {
+    const session = filteredSessions.find((s) => s.id === sessionId);
+    if (session) {
+      setSelectedSession(sessionId);
+      setPrice(parseFloat(session.price)); // Convert price to number
+    } else {
+      setSelectedSession(null);
+      setPrice(null);
+    }
+  };
+
+  const handleConfirm = () => {
+    if (
+      selectedCourse &&
+      selectedLocation &&
+      selectedSession &&
+      price !== null
+    ) {
+      addCourse({
+        courseId: selectedCourse.id,
+        title: selectedCourse.title,
+        location: selectedLocation,
+        sessionId: selectedSession,
+        price,
+      });
+      setVisibleMessage(`Course "${selectedCourse.title}" added to cart!`);
+      setSnackbarOpen(true);
+      setTimeout(() => setVisibleMessage(null), 3000);
+      handleClose();
+    }
+  };
+
+  const handleSnackbarClose = (
+    _event?: React.SyntheticEvent | Event,
+    reason?: string
+  ) => {
+    if (reason === "clickaway") return;
+    setSnackbarOpen(false);
+  };
+
+  if (loading) {
+    return (
+      <Typography variant="h6" sx={{ textAlign: "center", marginTop: "20px" }}>
+        Loading upcoming courses...
+      </Typography>
+    );
+  }
+
+  if (courses.length === 0) {
+    return (
+      <Typography variant="h6" sx={{ textAlign: "center", marginTop: "20px" }}>
+        No upcoming courses available.
+      </Typography>
+    );
+  }
+
   return (
     <Box
       sx={{
@@ -50,24 +175,24 @@ const CoursesSection = () => {
         backgroundColor: "#f9f9f9",
       }}
     >
-      {/* Section Title */}
       <Typography
         variant="h4"
         gutterBottom
         sx={{ fontWeight: "bold", marginBottom: "20px" }}
       >
-        Upcoming In October...
+        Upcoming Courses
       </Typography>
 
-      {/* Swiper Carousel */}
       <Swiper
         spaceBetween={30}
         slidesPerView={3}
+        navigation // Enable navigation arrows
         pagination={{ clickable: true }}
+        modules={[Navigation, Pagination]}
         style={{ padding: "20px 0" }}
       >
-        {courses.map((course, index) => (
-          <SwiperSlide key={index}>
+        {courses.map((course) => (
+          <SwiperSlide key={course.id}>
             <Card
               sx={{
                 maxWidth: 345,
@@ -78,11 +203,12 @@ const CoursesSection = () => {
                   boxShadow: "0 8px 16px rgba(0, 0, 0, 0.2)",
                 },
               }}
+              onClick={() => handleOpen(course)}
             >
               <CardMedia
                 component="img"
                 height="180"
-                image={courseImage}
+                image={course.image || placeholderImage}
                 alt={`Image for ${course.title}`}
               />
               <CardContent>
@@ -90,21 +216,20 @@ const CoursesSection = () => {
                   {course.title}
                 </Typography>
                 <Typography variant="body2" color="text.secondary" paragraph>
-                  {course.description}
+                  {course.short_description}
                 </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {course.price}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {course.reviews}
-                </Typography>
+                {course.sessions.length > 0 && (
+                  <Typography variant="body2" color="text.secondary">
+                    Next Session: {course.sessions[0].date} at{" "}
+                    {course.sessions[0].location.name}
+                  </Typography>
+                )}
               </CardContent>
             </Card>
           </SwiperSlide>
         ))}
       </Swiper>
 
-      {/* More Courses Button */}
       <Button
         component={Link}
         to="/courses"
@@ -114,6 +239,123 @@ const CoursesSection = () => {
       >
         More Courses
       </Button>
+
+      {/* Dialog for Course Details */}
+      <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
+        {selectedCourse && (
+          <>
+            <DialogTitle>{selectedCourse.title}</DialogTitle>
+            <DialogContent>
+              <Box
+                component="img"
+                src={selectedCourse.image || placeholderImage}
+                alt={selectedCourse.title}
+                sx={{ width: "100%", maxWidth: "300px", margin: "0 auto" }}
+              />
+              <Typography variant="body1" sx={{ marginTop: "20px" }}>
+                {selectedCourse.description}
+              </Typography>
+
+              <Box sx={{ marginTop: "20px" }}>
+                <Typography variant="subtitle1">Select a Location:</Typography>
+                <Box sx={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+                  {Array.from(
+                    new Set(
+                      selectedCourse.sessions.map(
+                        (session) => session.location.id
+                      )
+                    )
+                  ).map((locationId) => {
+                    const location = selectedCourse.sessions.find(
+                      (session) => session.location.id === locationId
+                    )?.location;
+                    return (
+                      <Chip
+                        key={locationId}
+                        label={`${location?.name} (${location?.address})`}
+                        color={
+                          selectedLocation === locationId
+                            ? "primary"
+                            : "default"
+                        }
+                        onClick={() => handleLocationSelect(locationId)}
+                        clickable
+                      />
+                    );
+                  })}
+                </Box>
+              </Box>
+
+              {selectedLocation && (
+                <Box sx={{ marginTop: "20px" }}>
+                  <Typography variant="subtitle1">Select a Session:</Typography>
+                  <Box sx={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+                    {filteredSessions.map((session) => (
+                      <Chip
+                        key={session.id}
+                        label={session.date}
+                        color={
+                          selectedSession === session.id ? "primary" : "default"
+                        }
+                        onClick={() => handleSessionSelect(session.id)}
+                        clickable
+                      />
+                    ))}
+                  </Box>
+                </Box>
+              )}
+
+              {price !== null ? (
+                <Typography
+                  variant="h6"
+                  color="primary"
+                  sx={{ marginTop: "20px" }}
+                >
+                  Price: RM {price.toFixed(2)}
+                </Typography>
+              ) : (
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ marginTop: "20px" }}
+                >
+                  Select a location and session to view the price.
+                </Typography>
+              )}
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleClose} color="secondary">
+                Cancel
+              </Button>
+              <Button
+                onClick={handleConfirm}
+                variant="contained"
+                color="success"
+                disabled={
+                  !selectedLocation || !selectedSession || price === null
+                }
+              >
+                Confirm
+              </Button>
+            </DialogActions>
+          </>
+        )}
+      </Dialog>
+
+      {/* Snackbar for Success Message */}
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={3000}
+        onClose={handleSnackbarClose}
+      >
+        <Alert
+          onClose={handleSnackbarClose}
+          severity="success"
+          sx={{ width: "100%" }}
+        >
+          {visibleMessage || "Course added to cart!"}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

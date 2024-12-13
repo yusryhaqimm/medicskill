@@ -1,37 +1,80 @@
 // src/components/TestimonialSection.tsx
-import { Box, Typography, Avatar, Card, CardContent } from "@mui/material";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { Box, Typography } from "@mui/material";
 import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import "swiper/css/pagination";
 import "swiper/css/navigation";
 import { Pagination, Navigation } from "swiper/modules";
 
-// Testimonial Data
-const testimonials = [
-  {
-    quote:
-      "This course changed my career! The trainers were exceptional and the content was easy to follow.",
-    name: "John Doe",
-    media: "/src/assets/testimonial1.png", // Replace with your image or video path
-    type: "image", // Specify the media type: "image" or "video"
-  },
-  {
-    quote:
-      "Thanks to the hands-on training, I was able to immediately apply what I learned at work.",
-    name: "Jane Smith",
-    media: "/src/assets/testimonial2.mp4", // Replace with your image or video path
-    type: "video", // Specify the media type
-  },
-  {
-    quote:
-      "The community and support I received from the trainers were invaluable!",
-    name: "Robert Johnson",
-    media: "/src/assets/testimonial3.png", // Replace with your image or video path
-    type: "image", // Specify the media type
-  },
-];
+// Define TypeScript interface for Testimonial
+interface Testimonial {
+  id: number;
+  media: string;
+}
 
-const TestimonialSection = () => {
+const TestimonialSection: React.FC = () => {
+  // State to store testimonials
+  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
+
+  // State for loading and error handling
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch testimonials on component mount
+  useEffect(() => {
+    const fetchTestimonials = async () => {
+      try {
+        // Adjust the URL to match your Django backend endpoint
+        const response = await axios.get(
+          "http://127.0.0.1:8000/api/homepage/testimonials/"
+        );
+
+        // Log the response to understand its structure
+        console.log("API Response:", response.data);
+
+        // Extract testimonials, handling different possible response structures
+        const testimonialsData = response.data.results || response.data || [];
+
+        setTestimonials(testimonialsData);
+        setIsLoading(false);
+      } catch (err) {
+        setError("Failed to fetch testimonials");
+        setIsLoading(false);
+        console.error("Error fetching testimonials:", err);
+      }
+    };
+
+    fetchTestimonials();
+  }, []);
+
+  // Loading and error states
+  if (isLoading) {
+    return (
+      <Box sx={{ textAlign: "center", padding: "50px 0" }}>
+        <Typography variant="h6">Loading testimonials...</Typography>
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box sx={{ textAlign: "center", padding: "50px 0", color: "error.main" }}>
+        <Typography variant="h6">{error}</Typography>
+      </Box>
+    );
+  }
+
+  // Check if testimonials is empty
+  if (testimonials.length === 0) {
+    return (
+      <Box sx={{ textAlign: "center", padding: "50px 0" }}>
+        <Typography variant="h6">No testimonials available</Typography>
+      </Box>
+    );
+  }
+
   return (
     <Box
       sx={{
@@ -58,68 +101,30 @@ const TestimonialSection = () => {
         modules={[Pagination, Navigation]}
         style={{ padding: "20px 0", maxWidth: "800px", margin: "auto" }}
       >
-        {testimonials.map((testimonial, index) => (
-          <SwiperSlide key={index}>
-            <Card
-              sx={{
-                maxWidth: 600,
-                margin: "auto",
-                padding: "20px",
-                boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
-                textAlign: "left",
-                borderRadius: "8px",
-              }}
-            >
-              <CardContent>
-                <Typography variant="body1" paragraph>
-                  "{testimonial.quote}"
-                </Typography>
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    margin: "20px 0",
-                  }}
-                >
-                  {/* Conditionally Render Media */}
-                  {testimonial.type === "image" ? (
-                    <Avatar
-                      src={testimonial.media}
-                      alt={testimonial.name}
-                      sx={{ width: 200, height: 200 }}
-                      variant="rounded"
-                    />
-                  ) : (
-                    <video
-                      src={testimonial.media}
-                      controls
-                      style={{
-                        width: "100%",
-                        maxHeight: "200px",
-                        borderRadius: "8px",
-                      }}
-                    />
-                  )}
-                </Box>
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    marginTop: "20px",
-                  }}
-                >
-                  <Avatar
-                    src={testimonial.type === "image" ? testimonial.media : ""}
-                    alt={testimonial.name}
-                    sx={{ width: 50, height: 50, marginRight: "15px" }}
-                  />
-                  <Typography variant="subtitle1" fontWeight="bold">
-                    {testimonial.name}
-                  </Typography>
-                </Box>
-              </CardContent>
-            </Card>
+        {testimonials.map((testimonial) => (
+          <SwiperSlide key={testimonial.id}>
+            {/* Determine media type and render accordingly */}
+            {testimonial.media.toLowerCase().match(/\.(mp4|webm|ogg)$/) ? (
+              <video
+                src={testimonial.media}
+                controls
+                style={{
+                  width: "100%",
+                  maxHeight: "500px",
+                  objectFit: "contain",
+                }}
+              />
+            ) : (
+              <img
+                src={testimonial.media}
+                alt="Testimonial"
+                style={{
+                  width: "100%",
+                  maxHeight: "500px",
+                  objectFit: "contain",
+                }}
+              />
+            )}
           </SwiperSlide>
         ))}
       </Swiper>

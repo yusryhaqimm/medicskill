@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Box, Typography } from "@mui/material";
+import { Box, Typography, useMediaQuery, useTheme } from "@mui/material";
 import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import "swiper/css/pagination";
@@ -18,6 +18,11 @@ type HighlightItem = {
 const HighlightSection = () => {
   const [highlights, setHighlights] = useState<HighlightItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const theme = useTheme();
+
+  // Responsive breakpoints
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
+  const isMediumScreen = useMediaQuery(theme.breakpoints.between("sm", "md"));
 
   useEffect(() => {
     const fetchHighlights = async () => {
@@ -51,6 +56,13 @@ const HighlightSection = () => {
     return <div>No highlights available.</div>;
   }
 
+  // Determine max height based on screen size
+  const getMaxHeight = () => {
+    if (isSmallScreen) return "300px";
+    if (isMediumScreen) return "500px";
+    return "600px";
+  };
+
   return (
     <Box
       sx={{
@@ -69,32 +81,71 @@ const HighlightSection = () => {
       </Typography>
 
       {/* Swiper Carousel */}
-      <Swiper
-        spaceBetween={30}
-        slidesPerView={1}
-        navigation
-        pagination={{ clickable: true }}
-        modules={[Navigation, Pagination]}
-        style={{ padding: "20px 0", maxWidth: "800px", margin: "auto" }}
+      <Box
+        sx={{
+          width: "100%",
+          maxWidth: "1200px",
+          margin: "0 auto",
+          px: { xs: 2, sm: 4, md: 6 },
+        }}
       >
-        {highlights.map((highlight) => (
-          <SwiperSlide key={highlight.id}>
-            {highlight.type === "image" ? (
-              <img
-                src={highlight.src}
-                alt={highlight.alt}
-                style={{ width: "100%", height: "auto", borderRadius: "8px" }}
-              />
-            ) : (
-              <video
-                src={highlight.src}
-                controls
-                style={{ width: "100%", height: "auto", borderRadius: "8px" }}
-              />
-            )}
-          </SwiperSlide>
-        ))}
-      </Swiper>
+        <Swiper
+          spaceBetween={30}
+          slidesPerView={1}
+          navigation
+          pagination={{ clickable: true }}
+          modules={[Navigation, Pagination]}
+          style={{
+            padding: "20px 0",
+            width: "100%",
+          }}
+        >
+          {highlights.map((highlight) => (
+            <SwiperSlide
+              key={highlight.id}
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <Box
+                sx={{
+                  width: "100%",
+                  maxWidth: "1000px",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
+                {highlight.type === "image" ? (
+                  <img
+                    src={highlight.src}
+                    alt={highlight.alt}
+                    style={{
+                      width: "100%",
+                      maxHeight: getMaxHeight(),
+                      objectFit: "contain",
+                      borderRadius: "8px",
+                    }}
+                  />
+                ) : (
+                  <video
+                    src={highlight.src}
+                    controls
+                    style={{
+                      width: "100%",
+                      maxHeight: getMaxHeight(),
+                      objectFit: "contain",
+                      borderRadius: "8px",
+                    }}
+                  />
+                )}
+              </Box>
+            </SwiperSlide>
+          ))}
+        </Swiper>
+      </Box>
     </Box>
   );
 };
