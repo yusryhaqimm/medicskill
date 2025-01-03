@@ -1,4 +1,3 @@
-// src/pages/ArticlesPage.tsx
 import React, { useEffect, useState } from "react";
 import {
   Box,
@@ -18,7 +17,7 @@ interface Article {
   date: string;
   category: string;
   title: string;
-  description?: string; // Optional description field
+  description?: string; // Mark description as optional
   image: string;
 }
 
@@ -118,8 +117,9 @@ const ArticlesPage: React.FC = () => {
                   color="text.secondary"
                   sx={{ marginTop: "10px" }}
                 >
-                  {article.description?.substring(0, 100) ||
-                    "No description available."}
+                  {article.description
+                    ? article.description.substring(0, 100)
+                    : "No description available."}
                 </Typography>
               </CardContent>
               <Box sx={{ padding: "10px 16px" }}>
