@@ -1,4 +1,3 @@
-// src/components/CoursesSection.tsx
 import {
   Box,
   Typography,
@@ -20,9 +19,9 @@ import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
 import { Link } from "react-router-dom";
-import { useCart } from "../context/CartContext";
 import { useState, useEffect } from "react";
 import axios from "axios";
+import { useAuth } from "../context/AuthContext";
 
 // Define the type for a course
 interface Course {
@@ -54,7 +53,7 @@ interface Course {
 const placeholderImage = "/src/assets/courses.webp";
 
 const CoursesSection = () => {
-  const { addCourse } = useCart();
+  const { isLoggedIn } = useAuth();
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
@@ -122,23 +121,62 @@ const CoursesSection = () => {
     }
   };
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (
       selectedCourse &&
       selectedLocation &&
       selectedSession &&
       price !== null
     ) {
-      addCourse({
-        courseId: selectedCourse.id,
+      const cartItem = {
+        course_id: selectedCourse.id,
+        session_id: selectedSession,
+        location_id: selectedLocation,
+        quantity: 1,
         title: selectedCourse.title,
-        location: selectedLocation,
-        sessionId: selectedSession,
+        location_name: selectedCourse.sessions.find(
+          (s) => s.location.id === selectedLocation
+        )?.location.name,
+        date: selectedCourse.sessions.find((s) => s.id === selectedSession)
+          ?.date,
         price,
-      });
-      setVisibleMessage(`Course "${selectedCourse.title}" added to cart!`);
+      };
+
+      if (isLoggedIn) {
+        // Handle adding to backend cart for logged-in users
+        try {
+          const apiUrl = "http://127.0.0.1:8000/api/cart/";
+          const headers = {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          };
+
+          const response = await axios.post(apiUrl, cartItem, {
+            headers,
+            withCredentials: true,
+          });
+
+          console.log("Cart updated successfully:", response.data);
+          setVisibleMessage(`Course "${selectedCourse.title}" added to cart!`);
+        } catch (error: any) {
+          const errorMessage =
+            error.response?.data?.error || "Failed to add course to cart.";
+          setVisibleMessage(errorMessage);
+        }
+      } else {
+        // Handle adding to localStorage cart for guest users
+        const guestCart = JSON.parse(localStorage.getItem("guestCart") || "[]");
+        guestCart.push(cartItem);
+        localStorage.setItem("guestCart", JSON.stringify(guestCart));
+
+        console.log("Guest cart updated:", guestCart);
+        setVisibleMessage(
+          `Course "${selectedCourse.title}" added to guest cart!`
+        );
+      }
+
       setSnackbarOpen(true);
       setTimeout(() => setVisibleMessage(null), 3000);
+
       handleClose();
     }
   };

@@ -16,9 +16,9 @@ import {
   Alert,
   CircularProgress,
 } from "@mui/material";
-import { useCart } from "../context/CartContext";
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { useAuth } from "../context/AuthContext";
 
 type Course = {
   id: string;
@@ -26,33 +26,32 @@ type Course = {
   category: string;
   short_description: string;
   description: string;
-  meta_description?: string;
   instructor: {
     id: string;
     name: string;
   };
   image: string | null;
-  sessions: {
+  sessions: Session[];
+};
+
+type Session = {
+  id: string;
+  date: string;
+  location: {
     id: string;
-    date: string;
-    location: {
-      id: string;
-      name: string;
-      address: string;
-    };
-    price: string; // Price is a string in the backend response
-  }[];
+    name: string;
+    address: string;
+  };
+  price: string;
 };
 
 const CoursesPage = () => {
-  const { addCourse } = useCart();
-  const [searchTerm, setSearchTerm] = useState("");
+  const { isLoggedIn } = useAuth();
+  const [searchTerm, setSearchTerm] = useState<string>("");
   const [courses, setCourses] = useState<Course[]>([]);
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
-  const [filteredSessions, setFilteredSessions] = useState<Course["sessions"]>(
-    []
-  );
+  const [filteredSessions, setFilteredSessions] = useState<Session[]>([]);
   const [selectedSession, setSelectedSession] = useState<string | null>(null);
   const [price, setPrice] = useState<number | null>(null);
   const [open, setOpen] = useState(false);
@@ -60,8 +59,10 @@ const CoursesPage = () => {
   const [visibleMessage, setVisibleMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Fetch all courses on component mount
   useEffect(() => {
     const fetchCourses = async () => {
+      setLoading(true);
       try {
         const response = await axios.get<Course[]>(
           "http://127.0.0.1:8000/api/courses/"
@@ -73,7 +74,6 @@ const CoursesPage = () => {
         setLoading(false);
       }
     };
-
     fetchCourses();
   }, []);
 
@@ -93,13 +93,11 @@ const CoursesPage = () => {
 
   const handleLocationSelect = (locationId: string) => {
     setSelectedLocation(locationId);
-
     const filtered =
       selectedCourse?.sessions.filter(
         (session) => session.location.id === locationId
       ) || [];
     setFilteredSessions(filtered);
-
     setSelectedSession(null);
     setPrice(null);
   };
@@ -108,31 +106,69 @@ const CoursesPage = () => {
     const session = filteredSessions.find((s) => s.id === sessionId);
     if (session) {
       setSelectedSession(sessionId);
-      setPrice(parseFloat(session.price)); // Convert price to number
+      setPrice(parseFloat(session.price));
     } else {
-      console.error("Invalid session selection.");
       setSelectedSession(null);
       setPrice(null);
     }
   };
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (
       selectedCourse &&
       selectedLocation &&
       selectedSession &&
       price !== null
     ) {
-      addCourse({
-        courseId: selectedCourse.id,
-        title: selectedCourse.title,
-        location: selectedLocation,
-        sessionId: selectedSession,
+      const cartItem = {
+        course_id: selectedCourse.id,
+        session_id: selectedSession,
+        location_id: selectedLocation,
+        quantity: 1,
+        title: selectedCourse.title, // Add course title for guest display
+        location_name: selectedCourse.sessions.find(
+          (s) => s.location.id === selectedLocation
+        )?.location.name,
+        date: selectedCourse.sessions.find((s) => s.id === selectedSession)
+          ?.date,
         price,
-      });
-      setVisibleMessage(`Course "${selectedCourse.title}" added to cart!`);
+      };
+
+      if (isLoggedIn) {
+        // Handle adding to backend cart for logged-in users
+        try {
+          const apiUrl = "http://127.0.0.1:8000/api/cart/";
+          const headers = {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          };
+
+          const response = await axios.post(apiUrl, cartItem, {
+            headers,
+            withCredentials: true,
+          });
+
+          console.log("Cart updated successfully:", response.data);
+          setVisibleMessage(`Course "${selectedCourse.title}" added to cart!`);
+        } catch (error: any) {
+          const errorMessage =
+            error.response?.data?.error || "Failed to add course to cart.";
+          setVisibleMessage(errorMessage);
+        }
+      } else {
+        // Handle adding to localStorage cart for guest users
+        const guestCart = JSON.parse(localStorage.getItem("guestCart") || "[]");
+        guestCart.push(cartItem);
+        localStorage.setItem("guestCart", JSON.stringify(guestCart));
+
+        console.log("Guest cart updated:", guestCart);
+        setVisibleMessage(
+          `Course "${selectedCourse.title}" added to guest cart!`
+        );
+      }
+
       setSnackbarOpen(true);
       setTimeout(() => setVisibleMessage(null), 3000);
+
       handleClose();
     }
   };
@@ -200,18 +236,8 @@ const CoursesPage = () => {
                     />
                     <CardContent>
                       <Typography variant="h6">{course.title}</Typography>
-                      <Typography
-                        variant="body2"
-                        color="text.secondary"
-                        paragraph
-                      >
+                      <Typography variant="body2" color="text.secondary">
                         {course.short_description}
-                      </Typography>
-                      <Typography variant="subtitle2">
-                        Category: {course.category}
-                      </Typography>
-                      <Typography variant="subtitle2">
-                        Trainer: {course.instructor.name}
                       </Typography>
                     </CardContent>
                   </Card>
@@ -246,46 +272,39 @@ const CoursesPage = () => {
               <Typography variant="body1" sx={{ marginTop: "20px" }}>
                 {selectedCourse.description}
               </Typography>
-              <Typography variant="body2" color="text.secondary" gutterBottom>
-                Trainer: {selectedCourse.instructor.name}
+              <Typography variant="subtitle1" sx={{ marginTop: "20px" }}>
+                Select a Location:
               </Typography>
-
-              <Box sx={{ marginTop: "20px" }}>
-                <Typography variant="subtitle1">Select a Location:</Typography>
-                <Box
-                  sx={{
-                    display: "flex",
-                    gap: "10px",
-                    flexWrap: "wrap",
-                    marginTop: "10px",
-                  }}
-                >
-                  {Array.from(
-                    new Set(
-                      selectedCourse.sessions.map(
-                        (session) => session.location.id
-                      )
+              <Box
+                sx={{
+                  display: "flex",
+                  gap: "10px",
+                  flexWrap: "wrap",
+                  marginTop: "10px",
+                }}
+              >
+                {Array.from(
+                  new Set(
+                    selectedCourse.sessions.map(
+                      (session) => session.location.id
                     )
-                  ).map((locationId) => {
-                    const location = selectedCourse.sessions.find(
-                      (session) => session.location.id === locationId
-                    )?.location;
-                    return (
-                      <Chip
-                        key={locationId}
-                        label={`${location?.name} (${location?.address})`}
-                        color={
-                          selectedLocation === locationId
-                            ? "primary"
-                            : "default"
-                        }
-                        onClick={() => handleLocationSelect(locationId)}
-                        clickable
-                        sx={{ cursor: "pointer" }}
-                      />
-                    );
-                  })}
-                </Box>
+                  )
+                ).map((locationId) => {
+                  const location = selectedCourse.sessions.find(
+                    (session) => session.location.id === locationId
+                  )?.location;
+                  return (
+                    <Chip
+                      key={locationId}
+                      label={`${location?.name} (${location?.address})`}
+                      color={
+                        selectedLocation === locationId ? "primary" : "default"
+                      }
+                      onClick={() => handleLocationSelect(locationId)}
+                      clickable
+                    />
+                  );
+                })}
               </Box>
 
               {selectedLocation && (
@@ -301,28 +320,19 @@ const CoursesPage = () => {
                         }
                         onClick={() => handleSessionSelect(session.id)}
                         clickable
-                        sx={{ cursor: "pointer" }}
                       />
                     ))}
                   </Box>
                 </Box>
               )}
 
-              {price !== null ? (
+              {price !== null && (
                 <Typography
                   variant="h6"
                   color="primary"
                   sx={{ marginTop: "20px" }}
                 >
                   Price: RM {price.toFixed(2)}
-                </Typography>
-              ) : (
-                <Typography
-                  variant="body2"
-                  color="text.secondary"
-                  sx={{ marginTop: "20px" }}
-                >
-                  Select a location and session to view the price.
                 </Typography>
               )}
             </DialogContent>
@@ -334,9 +344,7 @@ const CoursesPage = () => {
                 onClick={handleConfirm}
                 variant="contained"
                 color="success"
-                disabled={
-                  !selectedLocation || !selectedSession || price === null
-                }
+                disabled={!selectedLocation || !selectedSession}
               >
                 Confirm
               </Button>

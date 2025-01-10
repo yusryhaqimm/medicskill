@@ -1,144 +1,152 @@
 import React, { useEffect, useState } from "react";
-import {
-  Box,
-  Grid,
-  Card,
-  CardContent,
-  CardMedia,
-  Typography,
-  Button,
-} from "@mui/material";
-import { Link } from "react-router-dom";
+import { useParams } from "react-router-dom";
+import { Box, Typography, CircularProgress } from "@mui/material";
 import axios from "axios";
 
 interface Article {
   id: number;
   slug: string;
-  date: string;
-  category: string;
   title: string;
-  description?: string; // Mark description as optional
+  category: string;
+  content: string;
   image: string;
+  created_at: string;
 }
 
-const ArticlesPage: React.FC = () => {
-  const [articles, setArticles] = useState<Article[]>([]);
+const SingleArticlePage: React.FC = () => {
+  const { slug } = useParams<{ slug: string }>();
+  const [article, setArticle] = useState<Article | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
+    setLoading(true);
+    setError(false);
     axios
-      .get<Article[]>("http://127.0.0.1:8000/api/articles/")
+      .get<Article>(`http://127.0.0.1:8000/api/articles/${slug}/`)
       .then((response) => {
-        console.log("API Response:", response.data); // Debug API response
-        setArticles(response.data);
+        setArticle(response.data);
         setLoading(false);
       })
       .catch((error) => {
-        console.error("Error fetching articles:", error);
+        console.error("Error fetching article:", error);
+        setError(true);
         setLoading(false);
       });
-  }, []);
+  }, [slug]);
 
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          minHeight: "100vh",
+        }}
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (error || !article) {
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          minHeight: "100vh",
+          textAlign: "center",
+        }}
+      >
+        <Typography variant="h6" color="error">
+          Failed to load the article. Please try again later.
+        </Typography>
+      </Box>
+    );
   }
 
   return (
     <Box
       sx={{
         padding: "20px",
-        minHeight: "100vh",
-        backgroundColor: "#f9f9f9",
-        maxWidth: "1200px",
+        maxWidth: "800px",
         margin: "0 auto",
+        backgroundColor: "#ffffff",
+        borderRadius: "8px",
+        boxShadow: "0px 2px 10px rgba(0, 0, 0, 0.1)",
       }}
     >
-      {/* Title Section */}
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: "30px",
-        }}
-      >
-        <Typography variant="h4" fontWeight="bold">
-          Latest Blog Posts
-        </Typography>
-        <Button variant="contained" color="error" size="large">
-          See All Blog Posts
-        </Button>
-      </Box>
+      {/* Image Section */}
+      {article.image && (
+        <Box
+          sx={{
+            marginBottom: "20px",
+            borderRadius: "8px",
+            overflow: "hidden",
+            maxHeight: "400px", // Constrain the height
+            maxWidth: "100%",
+          }}
+        >
+          <img
+            src={article.image}
+            alt={article.title || "Article Image"}
+            style={{
+              width: "100%",
+              height: "auto",
+              objectFit: "cover",
+            }}
+          />
+        </Box>
+      )}
 
-      {/* Article List */}
-      <Grid container spacing={4}>
-        {articles.map((article) => (
-          <Grid item xs={12} sm={6} md={4} key={article.id}>
-            <Card
-              sx={{
-                height: "100%",
-                display: "flex",
-                flexDirection: "column",
-                boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
-                borderRadius: "8px",
-                overflow: "hidden",
-              }}
-            >
-              <CardMedia
-                component="img"
-                height="200"
-                image={article.image}
-                alt={article.title}
-                sx={{ objectFit: "cover" }}
-              />
-              <CardContent sx={{ flexGrow: 1 }}>
-                <Typography
-                  variant="subtitle2"
-                  color="text.secondary"
-                  gutterBottom
-                >
-                  {article.date} | {article.category}
-                </Typography>
-                <Typography
-                  variant="h6"
-                  fontWeight="bold"
-                  component={Link}
-                  to={`/articles/${article.slug}`}
-                  sx={{
-                    textDecoration: "none",
-                    color: "inherit",
-                    "&:hover": { color: "primary.main" },
-                  }}
-                >
-                  {article.title}
-                </Typography>
-                <Typography
-                  variant="body2"
-                  color="text.secondary"
-                  sx={{ marginTop: "10px" }}
-                >
-                  {article.description
-                    ? article.description.substring(0, 100)
-                    : "No description available."}
-                </Typography>
-              </CardContent>
-              <Box sx={{ padding: "10px 16px" }}>
-                <Button
-                  component={Link}
-                  to={`/articles/${article.slug}`}
-                  variant="outlined"
-                  color="primary"
-                  fullWidth
-                >
-                  Read More
-                </Button>
-              </Box>
-            </Card>
-          </Grid>
-        ))}
-      </Grid>
+      {/* Title Section */}
+      <Typography
+        variant="h4"
+        fontWeight="bold"
+        gutterBottom
+        sx={{ textAlign: "center", marginBottom: "20px" }}
+      >
+        {article.title}
+      </Typography>
+
+      {/* Metadata Section */}
+      <Typography
+        variant="body2"
+        color="text.secondary"
+        gutterBottom
+        sx={{ textAlign: "center" }}
+      >
+        {new Date(article.created_at).toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        })}
+      </Typography>
+
+      {/* Content Section */}
+      {article.content ? (
+        <Box
+          sx={{
+            typography: "body1",
+            lineHeight: 1.8,
+            marginTop: "20px",
+          }}
+          dangerouslySetInnerHTML={{ __html: article.content }}
+        />
+      ) : (
+        <Typography
+          variant="body1"
+          color="text.secondary"
+          sx={{ marginTop: "20px" }}
+        >
+          No content available for this article.
+        </Typography>
+      )}
     </Box>
   );
 };
 
-export default ArticlesPage;
+export default SingleArticlePage;
