@@ -1,9 +1,8 @@
-// src/pages/LoginRegisterPage.tsx
 import { useState } from "react";
 import { Box, Button, TextField, Tabs, Tab, Paper, Alert } from "@mui/material";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext"; // Import AuthContext
+import { useAuth } from "../context/AuthContext";
 
 const BASE_URL = "http://127.0.0.1:8000/api/accounts";
 
@@ -14,13 +13,6 @@ const LoginRegisterPage = () => {
     email: "",
     password: "",
     confirmPassword: "", // Only used for Register
-    salutation: "",
-    full_name: "",
-    billing_address: "",
-    mobile_number: "",
-    hospital_clinic_name: "",
-    designation: "",
-    dietary_restrictions: "",
   };
   const [formData, setFormData] = useState(initialFormData);
   const [errorMessage, setErrorMessage] = useState<string>("");
@@ -43,6 +35,7 @@ const LoginRegisterPage = () => {
   const handleSubmit = async () => {
     setErrorMessage("");
 
+    // Validate passwords for registration
     if (tabValue === 1 && formData.password !== formData.confirmPassword) {
       setErrorMessage("Passwords do not match.");
       return;
@@ -54,19 +47,8 @@ const LoginRegisterPage = () => {
     try {
       const response = await axios.post(endpoint, {
         username: formData.username,
-        email: formData.email, // Include email
+        email: formData.email, // Include email for registration
         password: formData.password,
-        ...(tabValue === 1 && {
-          profile: {
-            salutation: formData.salutation,
-            full_name: formData.full_name,
-            billing_address: formData.billing_address,
-            mobile_number: formData.mobile_number,
-            hospital_clinic_name: formData.hospital_clinic_name,
-            designation: formData.designation,
-            dietary_restrictions: formData.dietary_restrictions,
-          },
-        }),
       });
 
       if (response.status === 200 || response.status === 201) {
@@ -74,7 +56,7 @@ const LoginRegisterPage = () => {
           // Login success: Save token and redirect
           localStorage.setItem("token", response.data.access);
           login(); // Update AuthContext state
-          navigate("/"); // Redirect after login
+          navigate("/"); // Redirect to homepage after login
         } else {
           // Registration success: Redirect to login tab
           setTabValue(0);
@@ -118,70 +100,6 @@ const LoginRegisterPage = () => {
         )}
 
         <Box sx={{ marginTop: 2 }}>
-          {tabValue === 1 && (
-            <>
-              <TextField
-                label="Salutation"
-                name="salutation"
-                fullWidth
-                value={formData.salutation}
-                onChange={handleInputChange}
-                sx={{ marginBottom: 2 }}
-              />
-              <TextField
-                label="Full Name"
-                name="full_name"
-                fullWidth
-                value={formData.full_name}
-                onChange={handleInputChange}
-                sx={{ marginBottom: 2 }}
-              />
-              <TextField
-                label="Billing Address"
-                name="billing_address"
-                fullWidth
-                multiline
-                rows={2}
-                value={formData.billing_address}
-                onChange={handleInputChange}
-                sx={{ marginBottom: 2 }}
-              />
-              <TextField
-                label="Mobile Number"
-                name="mobile_number"
-                fullWidth
-                value={formData.mobile_number}
-                onChange={handleInputChange}
-                sx={{ marginBottom: 2 }}
-              />
-              <TextField
-                label="Hospital/Clinic Name"
-                name="hospital_clinic_name"
-                fullWidth
-                value={formData.hospital_clinic_name}
-                onChange={handleInputChange}
-                sx={{ marginBottom: 2 }}
-              />
-              <TextField
-                label="Designation"
-                name="designation"
-                fullWidth
-                value={formData.designation}
-                onChange={handleInputChange}
-                sx={{ marginBottom: 2 }}
-              />
-              <TextField
-                label="Dietary Restrictions"
-                name="dietary_restrictions"
-                fullWidth
-                multiline
-                rows={2}
-                value={formData.dietary_restrictions}
-                onChange={handleInputChange}
-                sx={{ marginBottom: 2 }}
-              />
-            </>
-          )}
           {tabValue === 1 && (
             <TextField
               label="Email"

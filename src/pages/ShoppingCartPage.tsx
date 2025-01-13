@@ -175,11 +175,49 @@ const ShoppingCartPage = () => {
   const totalPrice = cart.reduce((acc, course) => acc + course.price, 0);
 
   // Handle checkout
-  const handleCheckout = () => {
+  const handleCheckout = async () => {
     if (cart.length > 0) {
       if (isLoggedIn) {
         if (profileComplete) {
-          navigate("/payment-gateway"); // Redirect to registration if profile is complete
+          try {
+            const headers = {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+              "Content-Type": "application/json",
+            };
+
+            // Prepare cart data for the API request
+            const cartData = cart.map((course) => ({
+              course_id: course.id.split("-")[0], // Extract course ID
+              session_id:
+                course.id.split("-")[1] === "no-session"
+                  ? null
+                  : course.id.split("-")[1], // Extract session ID
+              price: course.price,
+            }));
+
+            // API call to checkout endpoint
+            const response = await fetch(`${API_BASE_URL}/checkout/`, {
+              method: "POST",
+              headers,
+              body: JSON.stringify({
+                items: cartData, // Pass cart data
+                total_price: totalPrice,
+              }),
+            });
+
+            if (!response.ok) {
+              throw new Error("Failed to complete checkout.");
+            }
+
+            const result = await response.json();
+
+            alert(`Order created successfully. Order ID: ${result.order_id}`);
+            setCart([]); // Clear cart after successful checkout
+            navigate("/payment-gateway"); // Redirect to the payment gateway
+          } catch (error) {
+            console.error("Error during checkout:", error);
+            alert("Failed to complete checkout. Please try again.");
+          }
         } else {
           alert(
             "Please complete your profile (name, billing address, mobile number) before proceeding."

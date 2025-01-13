@@ -75,48 +75,39 @@ const RegistrationPage = () => {
     }
 
     try {
-      // Step 1: Submit guest info
-      console.log("Submitting guest info:", formData);
-      const guestInfoResponse = await axios.post(
-        "http://127.0.0.1:8000/api/orders/guest-info/",
-        formData
+      setError("");
+      setSuccess(false);
+
+      // Step 1: Submit guest info and cart data to the backend
+      const payload = {
+        guest_info: formData,
+        cart: JSON.parse(localStorage.getItem("cart") || "[]"), // Fetch cart data from local storage
+      };
+
+      console.log("Submitting guest info and cart:", payload);
+
+      const response = await axios.post(
+        "http://127.0.0.1:8000/api/orders/checkout/",
+        payload
       );
 
-      if (
-        guestInfoResponse.status === 200 ||
-        guestInfoResponse.status === 201
-      ) {
-        const { id: guest_info_id } = guestInfoResponse.data; // Extract guest info ID
-        console.log("guest info:", guestInfoResponse);
+      if (response.status === 201) {
+        const { order_id, total_price } = response.data;
 
-        // Step 2: Create the order with the guest_info_id
-        console.log("Creating order with guest_info_id:", guest_info_id);
-        const orderResponse = await axios.post(
-          "http://127.0.0.1:8000/api/orders/checkout/",
-          { guest_info_id } // Pass required ID
-        );
+        setSuccess(true);
 
-        if (orderResponse.status === 201) {
-          const { order_id, total_price } = orderResponse.data;
-
-          setSuccess(true);
-          setError("");
-
-          // Step 3: Redirect to payment gateway with order details
-          navigate(`/payment-gateway`, {
-            state: { order_id, total_price },
-          });
-        } else {
-          throw new Error("Failed to create order. Please try again.");
-        }
+        // Step 2: Redirect to payment gateway
+        navigate(`/payment-gateway`, {
+          state: { order_id, total_price },
+        });
       } else {
-        throw new Error("Failed to save guest information. Please try again.");
+        throw new Error("Failed to complete the checkout process.");
       }
     } catch (err: any) {
       console.error("Error:", err.response?.data || err.message);
       setError(
-        err.response?.data?.message ||
-          "Failed to complete the registration process. Please try again."
+        err.response?.data?.error ||
+          "An unexpected error occurred. Please try again."
       );
       setSuccess(false);
     }
@@ -139,7 +130,7 @@ const RegistrationPage = () => {
       {error && <Alert severity="error">{error}</Alert>}
       {success && (
         <Alert severity="success">
-          Registration successful! Proceeding to payment...
+          Registration successful! Redirecting to payment...
         </Alert>
       )}
 
@@ -194,7 +185,6 @@ const RegistrationPage = () => {
             fullWidth
             variant="contained"
             color="success"
-            disabled={!agreed}
             onClick={handleRegister}
           >
             Register
