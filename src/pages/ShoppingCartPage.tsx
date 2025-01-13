@@ -35,7 +35,7 @@ const ShoppingCartPage = () => {
   const { isLoggedIn } = useAuth();
   const [cart, setCart] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
-  const [profileComplete, setProfileComplete] = useState(false); // Track profile status
+  const [profileComplete, setProfileComplete] = useState(false);
   const navigate = useNavigate();
 
   // Fetch cart and profile data
@@ -44,18 +44,40 @@ const ShoppingCartPage = () => {
       setLoading(true);
       try {
         if (isLoggedIn) {
-          // Fetch cart for logged-in users
+          const guestCart = JSON.parse(
+            localStorage.getItem("guestCart") || "[]"
+          );
+
+          if (guestCart.length > 0) {
+            const headers = {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+              "Content-Type": "application/json",
+            };
+
+            await fetch(`${API_BASE_URL}/cart/merge/`, {
+              method: "POST",
+              headers,
+              body: JSON.stringify({ cart: guestCart }),
+            });
+
+            localStorage.removeItem("guestCart");
+          }
+
           const headers = {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           };
 
-          // Fetch cart
           const cartResponse = await fetch(`${API_BASE_URL}/cart/`, {
             headers,
           });
+
+          if (!cartResponse.ok) {
+            throw new Error("Failed to fetch user cart.");
+          }
+
           const cartData = await cartResponse.json();
           const formattedCart = cartData.map((item: any) => ({
-            id: `${item.course_id}-${item.session_id || "no-session"}`,
+            id: `${item.course}-${item.session || "no-session"}`,
             title: item.course_details?.title || "Untitled Course",
             description:
               item.course_details?.description || "No description available.",
@@ -70,13 +92,13 @@ const ShoppingCartPage = () => {
           }));
           setCart(formattedCart);
 
-          // Check profile completion
           const profileResponse = await fetch(
             `${API_BASE_URL}/accounts/profile/`,
             {
               headers,
             }
           );
+
           const profileData = await profileResponse.json();
           const isComplete =
             profileData?.full_name?.trim() &&
@@ -84,38 +106,41 @@ const ShoppingCartPage = () => {
             profileData?.mobile_number?.trim();
           setProfileComplete(Boolean(isComplete));
         } else {
-          // Fetch cart for guest users
           const guestCart = JSON.parse(
             localStorage.getItem("guestCart") || "[]"
           );
-          const fetchedCart: Course[] = [];
+          const enrichedCart: Course[] = [];
           for (const item of guestCart) {
-            const response = await fetch(
-              `${API_BASE_URL}/courses/${item.course_id}/`
-            );
-            const courseDetails = await response.json();
-            const sessionDetails = courseDetails.sessions.find(
-              (session: any) => session.id === item.session_id
-            );
-            if (sessionDetails) {
-              fetchedCart.push({
-                id: `${item.course_id}-${item.session_id}`,
-                title: courseDetails.title,
-                description:
-                  courseDetails.description || "No description available.",
-                shortDescription: courseDetails.short_description || "N/A",
-                price: parseFloat(sessionDetails.price) || 0,
-                date: sessionDetails.date || "N/A",
-                location: sessionDetails.location?.name || "Unknown location",
-                address:
-                  sessionDetails.location?.address || "No address provided",
-                image: courseDetails.image
-                  ? `${courseDetails.image}`
-                  : placeholderImage,
-              });
+            try {
+              const response = await fetch(
+                `${API_BASE_URL}/courses/${item.course_id}/`
+              );
+              const courseDetails = await response.json();
+              const sessionDetails = courseDetails.sessions.find(
+                (session: any) => session.id === item.session_id
+              );
+              if (sessionDetails) {
+                enrichedCart.push({
+                  id: `${item.course_id}-${item.session_id}`,
+                  title: courseDetails.title,
+                  description:
+                    courseDetails.description || "No description available.",
+                  shortDescription: courseDetails.short_description || "N/A",
+                  price: parseFloat(sessionDetails.price) || 0,
+                  date: sessionDetails.date || "N/A",
+                  location: sessionDetails.location?.name || "Unknown location",
+                  address:
+                    sessionDetails.location?.address || "No address provided",
+                  image: courseDetails.image
+                    ? `${courseDetails.image}`
+                    : placeholderImage,
+                });
+              }
+            } catch (error) {
+              console.error("Error fetching course info:", error);
             }
           }
-          setCart(fetchedCart);
+          setCart(enrichedCart);
         }
       } catch (error) {
         console.error("Error fetching cart or profile:", error);
@@ -176,57 +201,49 @@ const ShoppingCartPage = () => {
 
   // Handle checkout
   const handleCheckout = async () => {
-    if (cart.length > 0) {
-      if (isLoggedIn) {
-        if (profileComplete) {
-          try {
-            const headers = {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-              "Content-Type": "application/json",
-            };
+    if (!isLoggedIn) {
+      navigate("/checkout-options", {
+        state: { redirectTo: "/shopping-cart" },
+      });
+      return;
+    }
 
-            // Prepare cart data for the API request
-            const cartData = cart.map((course) => ({
-              course_id: course.id.split("-")[0], // Extract course ID
-              session_id:
-                course.id.split("-")[1] === "no-session"
-                  ? null
-                  : course.id.split("-")[1], // Extract session ID
-              price: course.price,
-            }));
+    if (!profileComplete) {
+      alert(
+        "Please complete your profile (name, billing address, mobile number) before proceeding."
+      );
+      navigate("/profile");
+      return;
+    }
 
-            // API call to checkout endpoint
-            const response = await fetch(`${API_BASE_URL}/checkout/`, {
-              method: "POST",
-              headers,
-              body: JSON.stringify({
-                items: cartData, // Pass cart data
-                total_price: totalPrice,
-              }),
-            });
+    try {
+      const headers = {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+        "Content-Type": "application/json",
+      };
 
-            if (!response.ok) {
-              throw new Error("Failed to complete checkout.");
-            }
+      const response = await fetch(`${API_BASE_URL}/orders/checkout/`, {
+        method: "POST",
+        headers,
+      });
 
-            const result = await response.json();
-
-            alert(`Order created successfully. Order ID: ${result.order_id}`);
-            setCart([]); // Clear cart after successful checkout
-            navigate("/payment-gateway"); // Redirect to the payment gateway
-          } catch (error) {
-            console.error("Error during checkout:", error);
-            alert("Failed to complete checkout. Please try again.");
-          }
-        } else {
-          alert(
-            "Please complete your profile (name, billing address, mobile number) before proceeding."
-          );
-          navigate("/profile"); // Redirect to profile completion
-        }
-      } else {
-        navigate("/checkout-options"); // Redirect guests to checkout options
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to complete checkout.");
       }
+
+      const result = await response.json();
+
+      // Redirect to payment gateway with order details
+      navigate("/payment-gateway", {
+        state: {
+          orderId: result.order_id,
+          totalPrice: result.total_price,
+        },
+      });
+    } catch (error: any) {
+      console.error("Checkout failed:", error.message);
+      alert("Checkout failed. Please try again.");
     }
   };
 

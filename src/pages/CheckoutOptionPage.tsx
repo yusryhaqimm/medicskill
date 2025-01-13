@@ -10,7 +10,7 @@ import {
   Typography,
 } from "@mui/material";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 const BASE_URL = "http://127.0.0.1:8000/api/accounts";
@@ -27,6 +27,7 @@ const CheckoutOptionPage = () => {
   const [errorMessage, setErrorMessage] = useState<string>("");
   const { login } = useAuth(); // Access login function from AuthContext
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
@@ -55,16 +56,21 @@ const CheckoutOptionPage = () => {
     try {
       const response = await axios.post(endpoint, {
         username: formData.username,
-        email: formData.email, // Include email for registration
+        email: formData.email,
         password: formData.password,
       });
 
       if (response.status === 200 || response.status === 201) {
         if (tabValue === 0) {
-          // Login success: Save token and redirect
+          // Login success: Save token and merge cart
           localStorage.setItem("token", response.data.access);
-          login(); // Update AuthContext state
-          navigate("/payment"); // Redirect to payment after login
+
+          // Merge guest cart and update auth state
+          await login();
+
+          // Redirect back to cart or another specified route
+          const redirectTo = location.state?.redirectTo || "/cart";
+          navigate(redirectTo);
         } else {
           // Registration success: Redirect to login tab
           setTabValue(0);
@@ -78,11 +84,6 @@ const CheckoutOptionPage = () => {
           "An unexpected error occurred. Please try again."
       );
     }
-  };
-
-  const handleGuestCheckout = () => {
-    // Clear any login data to ensure guest flow
-    navigate("/registration"); // Redirect to payment as a guest
   };
 
   return (
@@ -163,20 +164,6 @@ const CheckoutOptionPage = () => {
             sx={{ marginBottom: 2 }}
           >
             {tabValue === 0 ? "Login" : "Register"}
-          </Button>
-          <Typography
-            variant="body2"
-            sx={{ textAlign: "center", marginBottom: 1 }}
-          >
-            OR
-          </Typography>
-          <Button
-            variant="outlined"
-            color="secondary"
-            fullWidth
-            onClick={handleGuestCheckout}
-          >
-            Continue as Guest
           </Button>
         </Box>
       </Paper>
