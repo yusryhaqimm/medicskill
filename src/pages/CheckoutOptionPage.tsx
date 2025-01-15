@@ -17,22 +17,24 @@ const BASE_URL = "http://127.0.0.1:8000/api/accounts";
 
 const CheckoutOptionPage = () => {
   const [tabValue, setTabValue] = useState(0); // 0 for Login, 1 for Register
-  const initialFormData = {
+  const [step, setStep] = useState("form"); // "form" for login/register, "otp" for OTP verification
+  const [formData, setFormData] = useState({
     username: "",
     email: "",
     password: "",
-    confirmPassword: "", // Only used for Register
-  };
-  const [formData, setFormData] = useState(initialFormData);
+    confirmPassword: "",
+    otp: "", // OTP input
+  });
   const [errorMessage, setErrorMessage] = useState<string>("");
+  const [successMessage, setSuccessMessage] = useState<string>(""); // Success message
+  const [loading, setLoading] = useState(false); // Loading state for button
   const { login } = useAuth(); // Access login function from AuthContext
   const navigate = useNavigate();
   const location = useLocation();
 
   const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
-    setErrorMessage("");
-    setFormData(initialFormData); // Reset form on tab change
+    resetForm();
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -42,39 +44,77 @@ const CheckoutOptionPage = () => {
     });
   };
 
+  const resetForm = () => {
+    setErrorMessage("");
+    setSuccessMessage("");
+    setFormData({
+      username: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+      otp: "",
+    });
+    setStep("form");
+  };
+
   const handleSubmit = async () => {
     setErrorMessage("");
+    setSuccessMessage("");
 
-    if (tabValue === 1 && formData.password !== formData.confirmPassword) {
+    if (
+      step === "form" &&
+      tabValue === 1 &&
+      formData.password !== formData.confirmPassword
+    ) {
       setErrorMessage("Passwords do not match.");
       return;
     }
 
     const endpoint =
-      tabValue === 0 ? `${BASE_URL}/token/` : `${BASE_URL}/register/`;
+      step === "form"
+        ? tabValue === 0
+          ? `${BASE_URL}/token/`
+          : `${BASE_URL}/register/`
+        : `${BASE_URL}/verify-otp/`;
 
+    const payload =
+      step === "form"
+        ? tabValue === 0
+          ? { username: formData.username, password: formData.password }
+          : {
+              username: formData.username,
+              email: formData.email,
+              password: formData.password,
+            }
+        : { email: formData.email, otp: formData.otp };
+
+    setLoading(true);
     try {
-      const response = await axios.post(endpoint, {
-        username: formData.username,
-        email: formData.email,
-        password: formData.password,
-      });
+      const response = await axios.post(endpoint, payload);
 
       if (response.status === 200 || response.status === 201) {
-        if (tabValue === 0) {
-          // Login success: Save token and merge cart
-          localStorage.setItem("token", response.data.access);
-
-          // Merge guest cart and update auth state
-          await login();
-
-          // Redirect back to cart or another specified route
-          const redirectTo = location.state?.redirectTo || "/cart";
-          navigate(redirectTo);
-        } else {
-          // Registration success: Redirect to login tab
-          setTabValue(0);
-          setFormData(initialFormData);
+        if (step === "form") {
+          if (tabValue === 0) {
+            // Login success: Save token and merge cart
+            localStorage.setItem("token", response.data.access);
+            await login(); // Update auth state
+            const redirectTo = location.state?.redirectTo || "/cart";
+            setSuccessMessage("Login successful! Redirecting to your cart...");
+            setTimeout(() => navigate(redirectTo), 1500); // Delay redirection for better UX
+          } else {
+            // Registration success: Proceed to OTP step
+            setStep("otp");
+            setSuccessMessage(
+              "Registration successful! Please check your email for the OTP."
+            );
+          }
+        } else if (step === "otp") {
+          // OTP verification success
+          setTabValue(0); // Switch to login tab
+          resetForm();
+          setSuccessMessage(
+            "Your account has been verified. You can now log in."
+          );
         }
       }
     } catch (err: any) {
@@ -83,6 +123,8 @@ const CheckoutOptionPage = () => {
           err.response?.data?.message ||
           "An unexpected error occurred. Please try again."
       );
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -116,55 +158,90 @@ const CheckoutOptionPage = () => {
           </Alert>
         )}
 
+        {successMessage && (
+          <Alert severity="success" sx={{ marginBottom: 2 }}>
+            {successMessage}
+          </Alert>
+        )}
+
         <Box sx={{ marginTop: 2 }}>
-          {tabValue === 1 && (
-            <TextField
-              label="Email"
-              name="email"
-              type="email"
-              fullWidth
-              value={formData.email}
-              onChange={handleInputChange}
-              sx={{ marginBottom: 2 }}
-            />
+          {step === "otp" ? (
+            <>
+              <TextField
+                label="OTP"
+                name="otp"
+                type="text"
+                fullWidth
+                value={formData.otp}
+                onChange={handleInputChange}
+                sx={{ marginBottom: 2 }}
+              />
+              <Button
+                variant="contained"
+                color="primary"
+                fullWidth
+                onClick={handleSubmit}
+                disabled={loading}
+              >
+                {loading ? "Verifying..." : "Verify OTP"}
+              </Button>
+            </>
+          ) : (
+            <>
+              {tabValue === 1 && (
+                <TextField
+                  label="Email"
+                  name="email"
+                  type="email"
+                  fullWidth
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  sx={{ marginBottom: 2 }}
+                />
+              )}
+              <TextField
+                label="Username"
+                name="username"
+                fullWidth
+                value={formData.username}
+                onChange={handleInputChange}
+                sx={{ marginBottom: 2 }}
+              />
+              <TextField
+                label="Password"
+                name="password"
+                type="password"
+                fullWidth
+                value={formData.password}
+                onChange={handleInputChange}
+                sx={{ marginBottom: tabValue === 1 ? 2 : 0 }}
+              />
+              {tabValue === 1 && (
+                <TextField
+                  label="Confirm Password"
+                  name="confirmPassword"
+                  type="password"
+                  fullWidth
+                  value={formData.confirmPassword}
+                  onChange={handleInputChange}
+                  sx={{ marginBottom: 2 }}
+                />
+              )}
+              <Button
+                variant="contained"
+                color="primary"
+                fullWidth
+                onClick={handleSubmit}
+                disabled={loading}
+              >
+                {loading
+                  ? "Please wait..."
+                  : tabValue === 0
+                  ? "Login"
+                  : "Register"}
+              </Button>
+            </>
           )}
-          <TextField
-            label="Username"
-            name="username"
-            fullWidth
-            value={formData.username}
-            onChange={handleInputChange}
-            sx={{ marginBottom: 2 }}
-          />
-          <TextField
-            label="Password"
-            name="password"
-            type="password"
-            fullWidth
-            value={formData.password}
-            onChange={handleInputChange}
-            sx={{ marginBottom: tabValue === 1 ? 2 : 0 }}
-          />
-          {tabValue === 1 && (
-            <TextField
-              label="Confirm Password"
-              name="confirmPassword"
-              type="password"
-              fullWidth
-              value={formData.confirmPassword}
-              onChange={handleInputChange}
-              sx={{ marginBottom: 2 }}
-            />
-          )}
-          <Button
-            variant="contained"
-            color="primary"
-            fullWidth
-            onClick={handleSubmit}
-            sx={{ marginBottom: 2 }}
-          >
-            {tabValue === 0 ? "Login" : "Register"}
-          </Button>
         </Box>
       </Paper>
     </Box>
