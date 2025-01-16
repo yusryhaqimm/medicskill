@@ -106,12 +106,24 @@ const TrainersSection = () => {
                 },
               }}
             >
-              <CardMedia
-                component="img"
-                height="180"
-                image={trainer.image || placeholderImage}
-                alt={`Image of ${trainer.name}`}
-              />
+              <Box
+                sx={{
+                  width: "100%",
+                  height: "180px", // Fixed height
+                  overflow: "hidden", // Ensures no overflow of larger images
+                }}
+              >
+                <CardMedia
+                  component="img"
+                  image={trainer.image || placeholderImage}
+                  alt={`Image of ${trainer.name}`}
+                  sx={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover", // Ensures images fit the box nicely
+                  }}
+                />
+              </Box>
               <CardContent>
                 <Typography variant="h6" gutterBottom>
                   {trainer.name}

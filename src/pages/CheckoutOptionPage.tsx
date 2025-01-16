@@ -136,20 +136,53 @@ const CheckoutOptionPage = () => {
         alignItems: "center",
         minHeight: "100vh",
         backgroundColor: "#f5f5f5",
+        padding: "20px",
       }}
     >
-      <Paper elevation={3} sx={{ padding: 4, maxWidth: 400, width: "100%" }}>
-        <Typography variant="h5" sx={{ textAlign: "center", marginBottom: 2 }}>
+      <Paper
+        elevation={4}
+        sx={{
+          padding: 4,
+          maxWidth: 420,
+          width: "100%",
+          borderRadius: "16px",
+          boxShadow: "0px 6px 12px rgba(0, 0, 0, 0.1)",
+        }}
+      >
+        <Typography
+          variant="h5"
+          sx={{
+            textAlign: "center",
+            marginBottom: 3,
+            color: "#3251A1",
+            fontWeight: "bold",
+          }}
+        >
           Checkout Options
         </Typography>
         <Tabs
           value={tabValue}
           onChange={handleTabChange}
           variant="fullWidth"
-          sx={{ marginBottom: 2 }}
+          sx={{
+            marginBottom: 3,
+            "& .MuiTabs-indicator": { backgroundColor: "#3251A1" },
+          }}
         >
-          <Tab label="Login" />
-          <Tab label="Register" />
+          <Tab
+            label="Login"
+            sx={{
+              color: tabValue === 0 ? "#3251A1" : "#777",
+              fontWeight: tabValue === 0 ? "bold" : "normal",
+            }}
+          />
+          <Tab
+            label="Register"
+            sx={{
+              color: tabValue === 1 ? "#3251A1" : "#777",
+              fontWeight: tabValue === 1 ? "bold" : "normal",
+            }}
+          />
         </Tabs>
 
         {errorMessage && (
@@ -164,7 +197,7 @@ const CheckoutOptionPage = () => {
           </Alert>
         )}
 
-        <Box sx={{ marginTop: 2 }}>
+        <Box>
           {step === "otp" ? (
             <>
               <TextField
@@ -174,14 +207,26 @@ const CheckoutOptionPage = () => {
                 fullWidth
                 value={formData.otp}
                 onChange={handleInputChange}
-                sx={{ marginBottom: 2 }}
+                sx={{
+                  marginBottom: 3,
+                  "& .MuiOutlinedInput-root": {
+                    "& fieldset": { borderColor: "#3251A1" },
+                    "&:hover fieldset": { borderColor: "red" },
+                    "&.Mui-focused fieldset": { borderColor: "#3251A1" },
+                  },
+                }}
               />
               <Button
                 variant="contained"
-                color="primary"
                 fullWidth
                 onClick={handleSubmit}
                 disabled={loading}
+                sx={{
+                  backgroundColor: "#3251A1",
+                  color: "white",
+                  padding: "10px 0",
+                  "&:hover": { backgroundColor: "red" },
+                }}
               >
                 {loading ? "Verifying..." : "Verify OTP"}
               </Button>
@@ -196,7 +241,7 @@ const CheckoutOptionPage = () => {
                   fullWidth
                   value={formData.email}
                   onChange={handleInputChange}
-                  sx={{ marginBottom: 2 }}
+                  sx={{ marginBottom: 3 }}
                 />
               )}
               <TextField
@@ -205,7 +250,7 @@ const CheckoutOptionPage = () => {
                 fullWidth
                 value={formData.username}
                 onChange={handleInputChange}
-                sx={{ marginBottom: 2 }}
+                sx={{ marginBottom: 3 }}
               />
               <TextField
                 label="Password"
@@ -214,7 +259,7 @@ const CheckoutOptionPage = () => {
                 fullWidth
                 value={formData.password}
                 onChange={handleInputChange}
-                sx={{ marginBottom: tabValue === 1 ? 2 : 0 }}
+                sx={{ marginBottom: tabValue === 1 ? 3 : 0 }}
               />
               {tabValue === 1 && (
                 <TextField
@@ -224,15 +269,20 @@ const CheckoutOptionPage = () => {
                   fullWidth
                   value={formData.confirmPassword}
                   onChange={handleInputChange}
-                  sx={{ marginBottom: 2 }}
+                  sx={{ marginBottom: 3 }}
                 />
               )}
               <Button
                 variant="contained"
-                color="primary"
                 fullWidth
                 onClick={handleSubmit}
                 disabled={loading}
+                sx={{
+                  backgroundColor: "#3251A1",
+                  color: "white",
+                  padding: "10px 0",
+                  "&:hover": { backgroundColor: "red" },
+                }}
               >
                 {loading
                   ? "Please wait..."

@@ -34,7 +34,7 @@ const AboutSection = () => {
           component="h2"
           gutterBottom
           sx={{ marginBottom: "20px" }}
-          style={{ color: "#3187A2" }}
+          style={{ color: "#3251A1" }}
         >
           About Medic Skill
         </Typography>
@@ -43,7 +43,7 @@ const AboutSection = () => {
           variant="body1"
           paragraph
           sx={{ marginBottom: "20px" }}
-          style={{ color: "#7CC1D7" }}
+          style={{ color: "#3251A1" }}
         >
           At Medic Skill, we are committed to providing top-notch medical
           education and hands-on skill-based training. Our mission is to empower

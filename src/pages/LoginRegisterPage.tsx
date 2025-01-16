@@ -1,5 +1,14 @@
 import { useState } from "react";
-import { Box, Button, TextField, Tabs, Tab, Paper, Alert } from "@mui/material";
+import {
+  Box,
+  Button,
+  TextField,
+  Tabs,
+  Tab,
+  Paper,
+  Alert,
+  Typography,
+} from "@mui/material";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
@@ -12,8 +21,8 @@ const LoginRegisterPage = () => {
     username: "",
     email: "",
     password: "",
-    confirmPassword: "", // Only used for Register
-    otp: "", // OTP input for verification
+    confirmPassword: "",
+    otp: "",
   });
   const [step, setStep] = useState("form"); // "form" for registration form, "otp" for OTP input
   const [errorMessage, setErrorMessage] = useState<string>("");
@@ -116,15 +125,39 @@ const LoginRegisterPage = () => {
         backgroundColor: "#f5f5f5",
       }}
     >
-      <Paper elevation={3} sx={{ padding: 4, maxWidth: 400, width: "100%" }}>
+      <Paper
+        elevation={4}
+        sx={{
+          padding: 4,
+          maxWidth: 420,
+          width: "100%",
+          borderRadius: "16px",
+          boxShadow: "0px 6px 12px rgba(0, 0, 0, 0.1)",
+        }}
+      >
         <Tabs
           value={tabValue}
           onChange={handleTabChange}
           variant="fullWidth"
-          sx={{ marginBottom: 2 }}
+          sx={{
+            marginBottom: 3,
+            "& .MuiTabs-indicator": { backgroundColor: "#3251A1" },
+          }}
         >
-          <Tab label="Login" />
-          <Tab label="Register" />
+          <Tab
+            label="Login"
+            sx={{
+              color: tabValue === 0 ? "#3251A1" : "#777",
+              fontWeight: tabValue === 0 ? "bold" : "normal",
+            }}
+          />
+          <Tab
+            label="Register"
+            sx={{
+              color: tabValue === 1 ? "#3251A1" : "#777",
+              fontWeight: tabValue === 1 ? "bold" : "normal",
+            }}
+          />
         </Tabs>
 
         {errorMessage && (
@@ -133,9 +166,15 @@ const LoginRegisterPage = () => {
           </Alert>
         )}
 
-        <Box sx={{ marginTop: 2 }}>
+        <Box>
           {step === "otp" ? (
             <>
+              <Typography
+                variant="h6"
+                sx={{ marginBottom: 2, color: "#3251A1", fontWeight: "bold" }}
+              >
+                Verify Your Email
+              </Typography>
               <TextField
                 label="OTP"
                 name="otp"
@@ -143,14 +182,26 @@ const LoginRegisterPage = () => {
                 fullWidth
                 value={formData.otp}
                 onChange={handleInputChange}
-                sx={{ marginBottom: 2 }}
+                sx={{
+                  marginBottom: 3,
+                  "& .MuiOutlinedInput-root": {
+                    "& fieldset": { borderColor: "#3251A1" },
+                    "&:hover fieldset": { borderColor: "red" },
+                    "&.Mui-focused fieldset": { borderColor: "#3251A1" },
+                  },
+                }}
               />
               <Button
                 variant="contained"
-                color="primary"
                 fullWidth
                 onClick={handleSubmit}
                 disabled={loading}
+                sx={{
+                  backgroundColor: "#3251A1",
+                  color: "white",
+                  padding: "10px 0",
+                  "&:hover": { backgroundColor: "red" },
+                }}
               >
                 {loading ? "Verifying..." : "Verify OTP"}
               </Button>
@@ -165,7 +216,7 @@ const LoginRegisterPage = () => {
                   fullWidth
                   value={formData.email}
                   onChange={handleInputChange}
-                  sx={{ marginBottom: 2 }}
+                  sx={{ marginBottom: 3 }}
                 />
               )}
               <TextField
@@ -174,7 +225,7 @@ const LoginRegisterPage = () => {
                 fullWidth
                 value={formData.username}
                 onChange={handleInputChange}
-                sx={{ marginBottom: 2 }}
+                sx={{ marginBottom: 3 }}
               />
               <TextField
                 label="Password"
@@ -183,7 +234,7 @@ const LoginRegisterPage = () => {
                 fullWidth
                 value={formData.password}
                 onChange={handleInputChange}
-                sx={{ marginBottom: tabValue === 1 ? 2 : 0 }}
+                sx={{ marginBottom: tabValue === 1 ? 3 : 0 }}
               />
               {tabValue === 1 && (
                 <TextField
@@ -193,15 +244,20 @@ const LoginRegisterPage = () => {
                   fullWidth
                   value={formData.confirmPassword}
                   onChange={handleInputChange}
-                  sx={{ marginBottom: 2 }}
+                  sx={{ marginBottom: 3 }}
                 />
               )}
               <Button
                 variant="contained"
-                color="primary"
                 fullWidth
                 onClick={handleSubmit}
                 disabled={loading}
+                sx={{
+                  backgroundColor: "#3251A1",
+                  color: "white",
+                  padding: "10px 0",
+                  "&:hover": { backgroundColor: "red" },
+                }}
               >
                 {loading
                   ? "Please wait..."

@@ -79,6 +79,27 @@ const CoursesPage = () => {
 
   const handleOpen = (course: Course) => {
     setSelectedCourse(course);
+
+    if (course.sessions.length > 0) {
+      const firstSession = course.sessions[0];
+      const firstLocationId = firstSession.location.id;
+
+      setSelectedLocation(firstLocationId);
+
+      const filtered = course.sessions.filter(
+        (session) => session.location.id === firstLocationId
+      );
+      setFilteredSessions(filtered);
+
+      setSelectedSession(filtered[0]?.id || null);
+      setPrice(filtered[0] ? parseFloat(filtered[0].price) : null);
+    } else {
+      setSelectedLocation(null);
+      setFilteredSessions([]);
+      setSelectedSession(null);
+      setPrice(null);
+    }
+
     setOpen(true);
   };
 
@@ -250,7 +271,7 @@ const CoursesPage = () => {
       <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
         {selectedCourse && (
           <>
-            <DialogTitle sx={{ backgroundColor: "#4CAF50", color: "white" }}>
+            <DialogTitle sx={{ backgroundColor: "#3251A1", color: "white" }}>
               {selectedCourse.title}
             </DialogTitle>
             <DialogContent>

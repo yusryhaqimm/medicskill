@@ -1,4 +1,3 @@
-// src/pages/ProfilePage.tsx
 import React, { useEffect, useState } from "react";
 import {
   Box,
@@ -13,8 +12,19 @@ import { useNavigate } from "react-router-dom";
 
 const BASE_URL = "http://127.0.0.1:8000/api/accounts";
 
+// Define the type for profileData
+interface ProfileData {
+  salutation: string;
+  full_name: string;
+  billing_address: string;
+  mobile_number: string;
+  hospital_clinic_name: string;
+  designation: string;
+  dietary_restrictions: string;
+}
+
 const ProfilePage = () => {
-  const [profileData, setProfileData] = useState({
+  const [profileData, setProfileData] = useState<ProfileData>({
     salutation: "",
     full_name: "",
     billing_address: "",
@@ -45,11 +55,13 @@ const ProfilePage = () => {
     fetchProfile();
   }, []);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setProfileData({
-      ...profileData,
-      [e.target.name]: e.target.value,
-    });
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+    const { name, value } = e.target;
+
+    setProfileData((prevData) => ({
+      ...prevData,
+      [name]: value as string, // Ensure TypeScript understands the dynamic key
+    }));
   };
 
   const handleSave = async () => {
@@ -84,101 +96,110 @@ const ProfilePage = () => {
         alignItems: "center",
         minHeight: "100vh",
         backgroundColor: "#f5f5f5",
-        padding: 4,
+        padding: "20px",
       }}
     >
-      <Paper elevation={3} sx={{ padding: 4, maxWidth: 600, width: "100%" }}>
-        <Typography variant="h5" sx={{ marginBottom: 2 }}>
+      <Paper
+        elevation={4}
+        sx={{
+          padding: 4,
+          maxWidth: 600,
+          width: "100%",
+          borderRadius: "16px",
+          boxShadow: "0px 6px 12px rgba(0, 0, 0, 0.1)",
+        }}
+      >
+        <Typography
+          variant="h5"
+          sx={{
+            textAlign: "center",
+            marginBottom: 3,
+            color: "#3251A1",
+            fontWeight: "bold",
+          }}
+        >
           My Profile
         </Typography>
 
         {errorMessage && (
-          <Alert severity="error" sx={{ marginBottom: 2 }}>
+          <Alert severity="error" sx={{ marginBottom: 3 }}>
             {errorMessage}
           </Alert>
         )}
         {successMessage && (
-          <Alert severity="success" sx={{ marginBottom: 2 }}>
+          <Alert severity="success" sx={{ marginBottom: 3 }}>
             {successMessage}
           </Alert>
         )}
 
-        <TextField
-          label="Salutation"
-          name="salutation"
-          fullWidth
-          value={profileData.salutation}
-          onChange={handleInputChange}
-          sx={{ marginBottom: 2 }}
-        />
-        <TextField
-          label="Full Name"
-          name="full_name"
-          fullWidth
-          value={profileData.full_name}
-          onChange={handleInputChange}
-          sx={{ marginBottom: 2 }}
-        />
-        <TextField
-          label="Billing Address"
-          name="billing_address"
-          fullWidth
-          multiline
-          rows={2}
-          value={profileData.billing_address}
-          onChange={handleInputChange}
-          sx={{ marginBottom: 2 }}
-        />
-        <TextField
-          label="Mobile Number"
-          name="mobile_number"
-          fullWidth
-          value={profileData.mobile_number}
-          onChange={handleInputChange}
-          sx={{ marginBottom: 2 }}
-        />
-        <TextField
-          label="Hospital/Clinic Name"
-          name="hospital_clinic_name"
-          fullWidth
-          value={profileData.hospital_clinic_name}
-          onChange={handleInputChange}
-          sx={{ marginBottom: 2 }}
-        />
-        <TextField
-          label="Designation"
-          name="designation"
-          fullWidth
-          value={profileData.designation}
-          onChange={handleInputChange}
-          sx={{ marginBottom: 2 }}
-        />
-        <TextField
-          label="Dietary Restrictions"
-          name="dietary_restrictions"
-          fullWidth
-          multiline
-          rows={2}
-          value={profileData.dietary_restrictions}
-          onChange={handleInputChange}
-          sx={{ marginBottom: 2 }}
-        />
+        {[
+          { label: "Salutation", name: "salutation" },
+          { label: "Full Name", name: "full_name" },
+          {
+            label: "Billing Address",
+            name: "billing_address",
+            multiline: true,
+            rows: 2,
+          },
+          { label: "Mobile Number", name: "mobile_number" },
+          { label: "Hospital/Clinic Name", name: "hospital_clinic_name" },
+          { label: "Designation", name: "designation" },
+          {
+            label: "Dietary Restrictions",
+            name: "dietary_restrictions",
+            multiline: true,
+            rows: 2,
+          },
+        ].map((field) => (
+          <TextField
+            key={field.name}
+            label={field.label}
+            name={field.name}
+            fullWidth
+            value={profileData[field.name as keyof ProfileData]} // Use keyof to ensure type safety
+            onChange={handleInputChange}
+            multiline={field.multiline || false}
+            rows={field.rows || 1}
+            sx={{
+              marginBottom: 3,
+              "& .MuiOutlinedInput-root": {
+                "& fieldset": { borderColor: "#3251A1" },
+                "&:hover fieldset": { borderColor: "red" },
+                "&.Mui-focused fieldset": { borderColor: "#3251A1" },
+              },
+            }}
+          />
+        ))}
 
         <Button
           variant="contained"
-          color="primary"
           fullWidth
           onClick={handleSave}
-          sx={{ marginBottom: 2 }}
+          sx={{
+            marginBottom: 2,
+            backgroundColor: "#3251A1",
+            color: "white",
+            padding: "10px 0",
+            "&:hover": { backgroundColor: "red" },
+          }}
         >
           Save Profile
         </Button>
 
         <Button
           variant="outlined"
-          color="secondary"
           fullWidth
           onClick={handleLogout}
+          sx={{
+            color: "#3251A1",
+            borderColor: "#3251A1",
+            padding: "10px 0",
+            "&:hover": {
+              backgroundColor: "#f5f5f5",
+              borderColor: "red",
+              color: "red",
+            },
+          }}
         >
           Logout
         </Button>

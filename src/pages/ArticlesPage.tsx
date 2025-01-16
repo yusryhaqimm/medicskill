@@ -47,7 +47,7 @@ const ArticlesPage: React.FC = () => {
   return (
     <Box
       sx={{
-        padding: "20px",
+        padding: "40px 20px",
         minHeight: "100vh",
         backgroundColor: "#f9f9f9",
         maxWidth: "1200px",
@@ -61,12 +61,22 @@ const ArticlesPage: React.FC = () => {
           justifyContent: "space-between",
           alignItems: "center",
           marginBottom: "30px",
+          borderBottom: "2px solid #3251A1",
+          paddingBottom: "10px",
         }}
       >
-        <Typography variant="h4" fontWeight="bold">
+        <Typography variant="h4" fontWeight="bold" color="#3251A1">
           Latest Blog Posts
         </Typography>
-        <Button variant="contained" color="error" size="large">
+        <Button
+          variant="contained"
+          sx={{
+            backgroundColor: "#3251A1",
+            color: "white",
+            "&:hover": { backgroundColor: "red" },
+          }}
+          size="large"
+        >
           See All Blog Posts
         </Button>
       </Box>
@@ -80,9 +90,11 @@ const ArticlesPage: React.FC = () => {
                 height: "100%",
                 display: "flex",
                 flexDirection: "column",
-                boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
-                borderRadius: "8px",
+                boxShadow: "0px 6px 12px rgba(0, 0, 0, 0.1)",
+                borderRadius: "16px",
                 overflow: "hidden",
+                transition: "transform 0.2s",
+                "&:hover": { transform: "scale(1.02)" },
               }}
             >
               <CardMedia
@@ -92,7 +104,7 @@ const ArticlesPage: React.FC = () => {
                 alt={article.title}
                 sx={{ objectFit: "cover" }}
               />
-              <CardContent sx={{ flexGrow: 1 }}>
+              <CardContent sx={{ flexGrow: 1, padding: "16px" }}>
                 <Typography
                   variant="subtitle2"
                   color="text.secondary"
@@ -107,8 +119,8 @@ const ArticlesPage: React.FC = () => {
                   to={`/articles/${article.slug}`}
                   sx={{
                     textDecoration: "none",
-                    color: "inherit",
-                    "&:hover": { color: "primary.main" },
+                    color: "#3251A1",
+                    "&:hover": { color: "red" },
                   }}
                 >
                   {article.title}
@@ -122,13 +134,17 @@ const ArticlesPage: React.FC = () => {
                     "No description available."}
                 </Typography>
               </CardContent>
-              <Box sx={{ padding: "10px 16px" }}>
+              <Box sx={{ padding: "16px" }}>
                 <Button
                   component={Link}
                   to={`/articles/${article.slug}`}
-                  variant="outlined"
-                  color="primary"
+                  variant="contained"
                   fullWidth
+                  sx={{
+                    backgroundColor: "#3251A1",
+                    color: "white",
+                    "&:hover": { backgroundColor: "red" },
+                  }}
                 >
                   Read More
                 </Button>

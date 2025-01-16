@@ -87,6 +87,27 @@ const CoursesSection = () => {
 
   const handleOpen = (course: Course) => {
     setSelectedCourse(course);
+
+    if (course.sessions.length > 0) {
+      const firstSession = course.sessions[0];
+      const firstLocationId = firstSession.location.id;
+
+      setSelectedLocation(firstLocationId);
+
+      const filtered = course.sessions.filter(
+        (session) => session.location.id === firstLocationId
+      );
+      setFilteredSessions(filtered);
+
+      setSelectedSession(filtered[0]?.id || null);
+      setPrice(filtered[0] ? parseFloat(filtered[0].price) : null);
+    } else {
+      setSelectedLocation(null);
+      setFilteredSessions([]);
+      setSelectedSession(null);
+      setPrice(null);
+    }
+
     setOpen(true);
   };
 
@@ -224,7 +245,7 @@ const CoursesSection = () => {
       <Swiper
         spaceBetween={30}
         slidesPerView={3}
-        navigation // Enable navigation arrows
+        navigation
         pagination={{ clickable: true }}
         modules={[Navigation, Pagination]}
         style={{ padding: "20px 0" }}
@@ -234,6 +255,10 @@ const CoursesSection = () => {
             <Card
               sx={{
                 maxWidth: 345,
+                height: "400px", // Fixed card height
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "space-between", // Ensures equal spacing between elements
                 margin: "auto",
                 boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
                 transition: "0.3s",
@@ -243,26 +268,76 @@ const CoursesSection = () => {
               }}
               onClick={() => handleOpen(course)}
             >
-              <CardMedia
-                component="img"
-                height="180"
-                image={course.image || placeholderImage}
-                alt={`Image for ${course.title}`}
-              />
-              <CardContent>
-                <Typography variant="h6" gutterBottom>
+              <Box
+                sx={{
+                  width: "100%",
+                  height: "180px", // Fixed image height
+                  overflow: "hidden",
+                }}
+              >
+                <CardMedia
+                  component="img"
+                  image={course.image || placeholderImage}
+                  alt={`Image for ${course.title}`}
+                  sx={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                  }}
+                />
+              </Box>
+              <CardContent
+                sx={{
+                  minHeight: "120px", // Ensures uniform card content height
+                  maxHeight: "120px",
+                  overflow: "hidden",
+                  display: "-webkit-box",
+                  WebkitLineClamp: 3, // Limits to 3 lines
+                  WebkitBoxOrient: "vertical",
+                  textOverflow: "ellipsis",
+                }}
+              >
+                <Typography
+                  variant="h6"
+                  gutterBottom
+                  sx={{
+                    overflow: "hidden",
+                    whiteSpace: "nowrap",
+                    textOverflow: "ellipsis",
+                  }}
+                >
                   {course.title}
                 </Typography>
-                <Typography variant="body2" color="text.secondary" paragraph>
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    display: "-webkit-box",
+                    WebkitLineClamp: 2, // Limits to 2 lines
+                    WebkitBoxOrient: "vertical",
+                  }}
+                >
                   {course.short_description}
                 </Typography>
+              </CardContent>
+              <Box sx={{ padding: "10px" }}>
                 {course.sessions.length > 0 && (
-                  <Typography variant="body2" color="text.secondary">
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{
+                      overflow: "hidden",
+                      whiteSpace: "nowrap",
+                      textOverflow: "ellipsis",
+                    }}
+                  >
                     Next Session: {course.sessions[0].date} at{" "}
                     {course.sessions[0].location.name}
                   </Typography>
                 )}
-              </CardContent>
+              </Box>
             </Card>
           </SwiperSlide>
         ))}

@@ -1,4 +1,3 @@
-// src/pages/TrainersPage.tsx
 import { useState, useEffect } from "react";
 import {
   Box,
@@ -59,7 +58,7 @@ const TrainersPage = () => {
       {/* Hero Section */}
       <Box
         sx={{
-          backgroundColor: "#4CAF50",
+          backgroundColor: "#3251a1",
           padding: "50px 0",
           textAlign: "center",
         }}
@@ -87,16 +86,25 @@ const TrainersPage = () => {
             {trainers.map((trainer) => (
               <Grid item xs={12} sm={6} md={3} key={trainer.id}>
                 <Card
-                  sx={{ height: "100%", cursor: "pointer" }}
+                  sx={{
+                    height: "100%",
+                    cursor: "pointer",
+                    display: "flex",
+                    flexDirection: "column",
+                  }}
                   onClick={() => handleOpen(trainer)}
                 >
                   <CardMedia
                     component="img"
-                    height="140"
                     image={trainer.image || fallbackTrainerImage} // Backend image or fallback
                     alt={trainer.name}
+                    sx={{
+                      width: "100%",
+                      height: 200, // Fixed height for consistency
+                      objectFit: "cover", // Ensures the image fits nicely
+                    }}
                   />
-                  <CardContent>
+                  <CardContent sx={{ flexGrow: 1 }}>
                     <Typography variant="h6" gutterBottom>
                       {trainer.name}
                     </Typography>
@@ -122,10 +130,11 @@ const TrainersPage = () => {
                 src={selectedTrainer.image || fallbackTrainerImage} // Backend image or fallback
                 alt={selectedTrainer.name}
                 sx={{
-                  width: "100%",
+                  width: "70%", // Reduce size to 70% of the original
                   maxWidth: "300px",
                   margin: "0 auto",
                   display: "block",
+                  borderRadius: "8px", // Rounded edges for better aesthetics
                 }}
               />
               <Typography
