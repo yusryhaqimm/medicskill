@@ -272,6 +272,14 @@ const CheckoutOptionPage = () => {
                   sx={{ marginBottom: 3 }}
                 />
               )}
+              <Typography
+                variant="body2"
+                sx={{
+                  textAlign: "center",
+                  marginBottom: 2,
+                  color: "#555",
+                }}
+              ></Typography>
               <Button
                 variant="contained"
                 fullWidth

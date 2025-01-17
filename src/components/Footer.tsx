@@ -1,6 +1,6 @@
-// src/components/Footer.tsx
-import { Box, Grid, Typography, Link, IconButton } from "@mui/material";
+import { Box, Grid, Typography, Link, IconButton, Button } from "@mui/material";
 import { Facebook, Twitter, Instagram, LinkedIn } from "@mui/icons-material";
+import { Link as RouterLink } from "react-router-dom";
 
 // Placeholder image path
 const logo = "/src/assets/mslogo.png";
@@ -9,13 +9,13 @@ const Footer = () => {
   return (
     <Box
       sx={{
-        backgroundColor: "#3251a1",
-        padding: "40px 0",
-        borderTop: "1px solid #e0e0e0",
+        backgroundColor: "#3251A1",
+        padding: "40px 20px",
+        color: "white",
       }}
     >
       <Grid container spacing={4} justifyContent="center">
-        {/* Left Section - Logo and Social Icons */}
+        {/* Left Section - Logo and Description */}
         <Grid
           item
           xs={12}
@@ -38,6 +38,7 @@ const Footer = () => {
               href="https://facebook.com"
               target="_blank"
               aria-label="Facebook"
+              sx={{ color: "white" }}
             >
               <Facebook />
             </IconButton>
@@ -46,6 +47,7 @@ const Footer = () => {
               href="https://twitter.com"
               target="_blank"
               aria-label="Twitter"
+              sx={{ color: "white" }}
             >
               <Twitter />
             </IconButton>
@@ -54,6 +56,7 @@ const Footer = () => {
               href="https://instagram.com"
               target="_blank"
               aria-label="Instagram"
+              sx={{ color: "white" }}
             >
               <Instagram />
             </IconButton>
@@ -62,6 +65,7 @@ const Footer = () => {
               href="https://linkedin.com"
               target="_blank"
               aria-label="LinkedIn"
+              sx={{ color: "white" }}
             >
               <LinkedIn />
             </IconButton>
@@ -70,38 +74,81 @@ const Footer = () => {
 
         {/* Center Section - Navigation Links */}
         <Grid item xs={12} md={4} sx={{ textAlign: "center" }}>
-          <Typography variant="h6" gutterBottom>
-            ABOUT
+          <Typography variant="h6" gutterBottom sx={{ fontWeight: "bold" }}>
+            Quick Links
           </Typography>
-          <Box>
-            {[
-              "About Us",
-              "Courses",
-              "Trainers",
-              "Pre-enroll",
-              "Contact",
-              "Partnerships",
-            ].map((item, index) => (
-              <Link
-                key={index}
-                href="#"
-                underline="none"
-                sx={{ display: "block", color: "inherit", marginBottom: "8px" }}
-              >
-                {item}
-              </Link>
-            ))}
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+            <Button
+              component={RouterLink}
+              to="/about-us"
+              color="inherit"
+              sx={{
+                textTransform: "none",
+                color: "white",
+                justifyContent: "center",
+              }}
+            >
+              About Us
+            </Button>
+            <Button
+              component={RouterLink}
+              to="/courses"
+              color="inherit"
+              sx={{
+                textTransform: "none",
+                color: "white",
+                justifyContent: "center",
+              }}
+            >
+              Courses Offered
+            </Button>
+            <Button
+              component={RouterLink}
+              to="/articles"
+              color="inherit"
+              sx={{
+                textTransform: "none",
+                color: "white",
+                justifyContent: "center",
+              }}
+            >
+              Articles
+            </Button>
+            <Button
+              component={RouterLink}
+              to="/trainers"
+              color="inherit"
+              sx={{
+                textTransform: "none",
+                color: "white",
+                justifyContent: "center",
+              }}
+            >
+              Trainers
+            </Button>
+            <Button
+              component={RouterLink}
+              to="/contact-us/inquiries"
+              color="inherit"
+              sx={{
+                textTransform: "none",
+                color: "white",
+                justifyContent: "center",
+              }}
+            >
+              Contact Us
+            </Button>
           </Box>
         </Grid>
 
-        {/* Right Section - Social Media Follow Links */}
+        {/* Right Section - Follow Us Links */}
         <Grid
           item
           xs={12}
           md={4}
           sx={{ textAlign: { xs: "center", md: "right" } }}
         >
-          <Typography variant="h6" gutterBottom>
+          <Typography variant="h6" gutterBottom sx={{ fontWeight: "bold" }}>
             Follow Us
           </Typography>
           <Box>
@@ -114,7 +161,7 @@ const Footer = () => {
                   underline="none"
                   sx={{
                     display: "block",
-                    color: "inherit",
+                    color: "white",
                     marginBottom: "8px",
                   }}
                 >
@@ -132,10 +179,10 @@ const Footer = () => {
           textAlign: "center",
           marginTop: "30px",
           paddingTop: "10px",
-          borderTop: "1px solid #e0e0e0",
+          borderTop: "1px solid rgba(255, 255, 255, 0.2)",
         }}
       >
-        <Typography variant="body2" color="text.secondary">
+        <Typography variant="body2" color="white">
           Copyright © {new Date().getFullYear()} All rights reserved Medicskill
         </Typography>
       </Box>

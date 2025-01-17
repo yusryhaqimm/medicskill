@@ -1,4 +1,3 @@
-// src/components/TrainersSection.tsx
 import {
   Box,
   Typography,
@@ -8,7 +7,7 @@ import {
   CardMedia,
 } from "@mui/material";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { Navigation, Pagination } from "swiper/modules"; // Import Swiper modules
+import { Navigation, Pagination } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
@@ -71,15 +70,20 @@ const TrainersSection = () => {
     <Box
       sx={{
         textAlign: "center",
-        padding: "50px 0",
-        backgroundColor: "#f9f9f9",
+        padding: "50px 20px",
+        backgroundColor: "#f5f5f5",
       }}
     >
       {/* Section Title */}
       <Typography
         variant="h4"
         gutterBottom
-        sx={{ fontWeight: "bold", marginBottom: "20px" }}
+        sx={{
+          fontWeight: "bold",
+          marginBottom: "40px",
+          color: "#3251A1",
+          textTransform: "uppercase",
+        }}
       >
         Our Trainers
       </Typography>
@@ -88,10 +92,15 @@ const TrainersSection = () => {
       <Swiper
         spaceBetween={30}
         slidesPerView={3}
-        navigation // Enable navigation arrows
+        navigation
         pagination={{ clickable: true }}
         modules={[Navigation, Pagination]}
         style={{ padding: "20px 0" }}
+        breakpoints={{
+          320: { slidesPerView: 1 },
+          768: { slidesPerView: 2 },
+          1024: { slidesPerView: 3 },
+        }}
       >
         {trainers.map((trainer) => (
           <SwiperSlide key={trainer.id}>
@@ -99,18 +108,23 @@ const TrainersSection = () => {
               sx={{
                 maxWidth: 345,
                 margin: "auto",
-                boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
-                transition: "0.3s",
+                borderRadius: "12px",
+                border: "1px solid #ddd",
+                boxShadow: "0 4px 10px rgba(0, 0, 0, 0.1)",
+                transition: "transform 0.3s, box-shadow 0.3s",
                 "&:hover": {
-                  boxShadow: "0 8px 16px rgba(0, 0, 0, 0.2)",
+                  transform: "translateY(-5px)",
+                  boxShadow: "0 8px 20px rgba(0, 0, 0, 0.2)",
                 },
               }}
             >
               <Box
                 sx={{
                   width: "100%",
-                  height: "180px", // Fixed height
-                  overflow: "hidden", // Ensures no overflow of larger images
+                  height: "200px",
+                  overflow: "hidden",
+                  borderTopLeftRadius: "12px",
+                  borderTopRightRadius: "12px",
                 }}
               >
                 <CardMedia
@@ -120,18 +134,35 @@ const TrainersSection = () => {
                   sx={{
                     width: "100%",
                     height: "100%",
-                    objectFit: "cover", // Ensures images fit the box nicely
+                    objectFit: "cover",
                   }}
                 />
               </Box>
               <CardContent>
-                <Typography variant="h6" gutterBottom>
+                <Typography
+                  variant="h6"
+                  gutterBottom
+                  sx={{
+                    fontWeight: "bold",
+                    color: "#3251A1",
+                    textAlign: "center",
+                  }}
+                >
                   {trainer.name}
                 </Typography>
-                <Typography variant="body2" color="text.secondary" paragraph>
+                <Typography
+                  variant="body2"
+                  color="#555"
+                  paragraph
+                  sx={{ textAlign: "center", marginBottom: "10px" }}
+                >
                   {trainer.short_description}
                 </Typography>
-                <Typography variant="body2" color="text.secondary">
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ textAlign: "center" }}
+                >
                   {trainer.bio}
                 </Typography>
               </CardContent>
@@ -145,8 +176,16 @@ const TrainersSection = () => {
         component={Link}
         to="/trainers"
         variant="contained"
-        color="success"
-        sx={{ marginTop: "30px", textTransform: "none" }}
+        sx={{
+          marginTop: "30px",
+          backgroundColor: "#3251A1",
+          color: "white",
+          textTransform: "none",
+          padding: "10px 20px",
+          "&:hover": {
+            backgroundColor: "#27408B",
+          },
+        }}
       >
         View More
       </Button>

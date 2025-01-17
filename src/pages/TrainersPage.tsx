@@ -1,7 +1,5 @@
-import { useState, useEffect } from "react";
 import {
   Box,
-  Grid,
   Typography,
   Card,
   CardContent,
@@ -14,7 +12,8 @@ import {
   Button,
   CircularProgress,
 } from "@mui/material";
-import { fetchTrainers, Trainer } from "../api/trainers"; // Import API calls
+import { useState, useEffect } from "react";
+import { fetchTrainers, Trainer } from "../api/trainers";
 
 const fallbackTrainerImage = "/trainer.webp"; // Ensure this is in the public folder
 
@@ -24,12 +23,10 @@ const TrainersPage = () => {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // Fetch trainers on component mount
   useEffect(() => {
     const loadTrainers = async () => {
       try {
-        const data = await fetchTrainers(); // Fetch trainers using the API function
-        console.log("Fetched Trainers:", data); // Debug fetched data
+        const data = await fetchTrainers();
         setTrainers(data);
       } catch (error) {
         console.error("Error fetching trainers:", error);
@@ -41,13 +38,11 @@ const TrainersPage = () => {
     loadTrainers();
   }, []);
 
-  // Handle opening the trainer dialog
   const handleOpen = (trainer: Trainer) => {
     setSelectedTrainer(trainer);
     setOpen(true);
   };
 
-  // Handle closing the trainer dialog
   const handleClose = () => {
     setSelectedTrainer(null);
     setOpen(false);
@@ -55,67 +50,90 @@ const TrainersPage = () => {
 
   return (
     <Box sx={{ backgroundColor: "#f5f5f5", minHeight: "100vh" }}>
-      {/* Hero Section */}
-      <Box
-        sx={{
-          backgroundColor: "#3251a1",
-          padding: "50px 0",
-          textAlign: "center",
-        }}
-      >
-        <Typography variant="h3" sx={{ color: "white", fontWeight: "bold" }}>
-          Meet Our Trainers
-        </Typography>
-      </Box>
-
       {/* Trainers Section */}
-      <Container sx={{ padding: "50px 0" }}>
-        <Box sx={{ textAlign: "center", marginBottom: "30px" }}>
-          <Typography variant="h4" sx={{ fontWeight: "bold" }}>
-            Trainers
-          </Typography>
-        </Box>
+      <Container sx={{ padding: "50px 20px" }}>
+        <Typography
+          variant="h4"
+          sx={{
+            fontWeight: "bold",
+            textAlign: "center",
+            marginBottom: "40px",
+            color: "#3251A1",
+          }}
+        >
+          Our Expert Trainers
+        </Typography>
 
-        {/* Show loading spinner */}
         {loading ? (
           <Box sx={{ textAlign: "center", padding: "50px 0" }}>
             <CircularProgress />
           </Box>
         ) : (
-          <Grid container spacing={4}>
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+              gap: "30px",
+            }}
+          >
             {trainers.map((trainer) => (
-              <Grid item xs={12} sm={6} md={3} key={trainer.id}>
-                <Card
+              <Card
+                key={trainer.id}
+                sx={{
+                  borderRadius: "12px",
+                  boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
+                  transition: "transform 0.3s, box-shadow 0.3s",
+                  "&:hover": {
+                    transform: "translateY(-5px)",
+                    boxShadow: "0px 8px 20px rgba(0, 0, 0, 0.2)",
+                  },
+                  cursor: "pointer",
+                }}
+                onClick={() => handleOpen(trainer)}
+              >
+                <Box
                   sx={{
-                    height: "100%",
-                    cursor: "pointer",
-                    display: "flex",
-                    flexDirection: "column",
+                    width: "100%",
+                    height: "200px",
+                    overflow: "hidden",
+                    borderTopLeftRadius: "12px",
+                    borderTopRightRadius: "12px",
                   }}
-                  onClick={() => handleOpen(trainer)}
                 >
                   <CardMedia
                     component="img"
-                    image={trainer.image || fallbackTrainerImage} // Backend image or fallback
+                    image={trainer.image || fallbackTrainerImage}
                     alt={trainer.name}
                     sx={{
                       width: "100%",
-                      height: 200, // Fixed height for consistency
-                      objectFit: "cover", // Ensures the image fits nicely
+                      height: "100%",
+                      objectFit: "cover",
                     }}
                   />
-                  <CardContent sx={{ flexGrow: 1 }}>
-                    <Typography variant="h6" gutterBottom>
-                      {trainer.name}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {trainer.short_description}
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </Grid>
+                </Box>
+                <CardContent>
+                  <Typography
+                    variant="h6"
+                    sx={{
+                      fontWeight: "bold",
+                      color: "#3251A1",
+                      textAlign: "center",
+                      marginBottom: "10px",
+                    }}
+                  >
+                    {trainer.name}
+                  </Typography>
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{ textAlign: "center" }}
+                  >
+                    {trainer.short_description}
+                  </Typography>
+                </CardContent>
+              </Card>
             ))}
-          </Grid>
+          </Box>
         )}
       </Container>
 
@@ -123,24 +141,25 @@ const TrainersPage = () => {
       <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
         {selectedTrainer && (
           <>
-            <DialogTitle>{selectedTrainer.name}</DialogTitle>
-            <DialogContent>
+            <DialogTitle sx={{ textAlign: "center", fontWeight: "bold" }}>
+              {selectedTrainer.name}
+            </DialogTitle>
+            <DialogContent sx={{ textAlign: "center" }}>
               <Box
                 component="img"
-                src={selectedTrainer.image || fallbackTrainerImage} // Backend image or fallback
+                src={selectedTrainer.image || fallbackTrainerImage}
                 alt={selectedTrainer.name}
                 sx={{
-                  width: "70%", // Reduce size to 70% of the original
+                  width: "70%",
                   maxWidth: "300px",
                   margin: "0 auto",
                   display: "block",
-                  borderRadius: "8px", // Rounded edges for better aesthetics
+                  borderRadius: "8px",
                 }}
               />
               <Typography
                 variant="body1"
-                gutterBottom
-                sx={{ marginTop: "20px" }}
+                sx={{ marginTop: "20px", marginBottom: "10px" }}
               >
                 {selectedTrainer.description}
               </Typography>
@@ -149,7 +168,13 @@ const TrainersPage = () => {
               </Typography>
             </DialogContent>
             <DialogActions>
-              <Button onClick={handleClose} color="secondary">
+              <Button
+                onClick={handleClose}
+                sx={{
+                  color: "#777",
+                  "&:hover": { color: "#3251A1" },
+                }}
+              >
                 Close
               </Button>
             </DialogActions>

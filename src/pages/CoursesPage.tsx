@@ -206,9 +206,18 @@ const CoursesPage = () => {
     <Box
       sx={{ padding: "20px", backgroundColor: "#f5f5f5", minHeight: "100vh" }}
     >
-      <Typography variant="h3" gutterBottom sx={{ textAlign: "center" }}>
+      <Typography
+        variant="h3"
+        gutterBottom
+        sx={{
+          textAlign: "center",
+          color: "#3251A1",
+          fontWeight: "bold",
+        }}
+      >
         Our Courses
       </Typography>
+
       <Box
         sx={{ display: "flex", justifyContent: "center", marginBottom: "30px" }}
       >
@@ -243,23 +252,74 @@ const CoursesPage = () => {
               .map((course) => (
                 <Grid item xs={12} sm={6} md={3} key={course.id}>
                   <Card
-                    sx={{ cursor: "pointer", height: "100%" }}
+                    sx={{
+                      cursor: "pointer",
+                      height: "100%",
+                      display: "flex",
+                      flexDirection: "column",
+                      borderRadius: "8px",
+                      border: "1px solid #ddd",
+                      boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
+                      overflow: "hidden",
+                    }}
                     onClick={() => handleOpen(course)}
                   >
                     <CardMedia
                       component="img"
-                      height="140"
+                      height="180"
                       image={
                         course.image ||
                         "http://127.0.0.1:8000/media/default-course.jpg"
                       }
                       alt={course.title}
+                      sx={{ objectFit: "cover" }}
                     />
-                    <CardContent>
-                      <Typography variant="h6">{course.title}</Typography>
-                      <Typography variant="body2" color="text.secondary">
+                    <CardContent
+                      sx={{
+                        flex: 1,
+                        display: "flex",
+                        flexDirection: "column",
+                      }}
+                    >
+                      <Typography
+                        variant="h6"
+                        sx={{
+                          fontWeight: "bold",
+                          marginBottom: "8px",
+                          color: "#3251A1",
+                        }}
+                      >
+                        {course.title}
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{ marginBottom: "16px" }}
+                      >
                         {course.short_description}
                       </Typography>
+                      <Typography
+                        variant="h6"
+                        sx={{
+                          fontWeight: "bold",
+                          color: "#43A047",
+                          marginBottom: "16px",
+                        }}
+                      >
+                        {/* RM{course.price.toFixed(2)} */}
+                      </Typography>
+                      <Button
+                        variant="contained"
+                        sx={{
+                          backgroundColor: "#3251A1",
+                          color: "white",
+                          fontWeight: "bold",
+                          "&:hover": { backgroundColor: "#27408B" },
+                          marginTop: "auto",
+                        }}
+                      >
+                        View course details
+                      </Button>
                     </CardContent>
                   </Card>
                 </Grid>
@@ -358,14 +418,30 @@ const CoursesPage = () => {
               )}
             </DialogContent>
             <DialogActions>
-              <Button onClick={handleClose} color="secondary">
+              <Button
+                onClick={handleClose}
+                sx={{
+                  backgroundColor: "#e0e0e0", // Light grey background
+                  color: "#555", // Darker grey for text
+                  "&:hover": {
+                    backgroundColor: "#d6d6d6", // Slightly darker grey on hover
+                  },
+                }}
+              >
                 Cancel
               </Button>
+
               <Button
                 onClick={handleConfirm}
                 variant="contained"
-                color="success"
                 disabled={!selectedLocation || !selectedSession}
+                sx={{
+                  backgroundColor: "#3251A1",
+                  color: "white",
+                  "&:hover": {
+                    backgroundColor: "#27408B", // Slightly darker shade for hover effect
+                  },
+                }}
               >
                 Confirm
               </Button>

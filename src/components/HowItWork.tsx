@@ -1,4 +1,3 @@
-// src/components/HowItWork.tsx
 import { Box, Grid, Typography } from "@mui/material";
 
 const HowItWork = () => {
@@ -13,7 +12,7 @@ const HowItWork = () => {
     <Box
       sx={{
         textAlign: "center",
-        padding: "50px 0",
+        padding: "50px 20px",
         backgroundColor: "#f5f5f5",
       }}
     >
@@ -21,57 +20,64 @@ const HowItWork = () => {
       <Typography
         variant="h4"
         gutterBottom
-        sx={{ fontWeight: "bold", marginBottom: "30px" }}
+        sx={{
+          fontWeight: "bold",
+          color: "#3251A1",
+          marginBottom: "40px",
+        }}
       >
-        How it Work
+        How It Works
       </Typography>
 
+      {/* Steps */}
       <Grid container spacing={4} justifyContent="center">
         {steps.map((step, index) => (
           <Grid item xs={12} sm={6} md={3} key={index}>
             <Box
               sx={{
-                position: "relative",
-                height: "200px",
+                textAlign: "center",
+                borderRadius: "12px",
+                padding: "30px",
+                backgroundColor: "white",
+                border: "1px solid #ddd",
+                boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
+                height: "250px", // Ensures all boxes are the same height
                 display: "flex",
-                alignItems: "center",
+                flexDirection: "column",
                 justifyContent: "center",
-                backgroundColor: index === 0 ? "white" : "transparent",
-                borderRadius: "8px",
-                overflow: "hidden",
-                boxShadow:
-                  index === 0 ? "0 4px 8px rgba(0, 0, 0, 0.1)" : "none",
+                alignItems: "center",
+                transition: "transform 0.3s, box-shadow 0.3s",
                 "&:hover": {
-                  boxShadow: "0 8px 16px rgba(0, 0, 0, 0.2)",
+                  transform: "translateY(-5px)",
+                  boxShadow: "0px 6px 15px rgba(0, 0, 0, 0.2)",
                 },
               }}
             >
-              {/* Number as Background */}
-              <Typography
-                variant="h1"
-                component="div"
+              {/* Step Number */}
+              <Box
                 sx={{
-                  position: "absolute",
-                  top: "50%",
-                  left: "50%",
-                  transform: "translate(-50%, -50%)",
-                  fontSize: "150px",
+                  width: "60px",
+                  height: "60px",
+                  borderRadius: "50%",
+                  backgroundColor: "#3251A1",
+                  color: "white",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
                   fontWeight: "bold",
-                  color: "rgba(0, 0, 0, 0.1)",
-                  zIndex: 1, // Background Layer
+                  fontSize: "20px",
+                  marginBottom: "20px",
                 }}
               >
                 {step.id}
-              </Typography>
+              </Box>
 
-              {/* Overlayed Text */}
+              {/* Step Title */}
               <Typography
                 variant="h6"
-                component="div"
                 sx={{
-                  position: "relative",
-                  zIndex: 2, // Foreground Layer
                   fontWeight: "600",
+                  color: "#555",
                 }}
               >
                 {step.title}

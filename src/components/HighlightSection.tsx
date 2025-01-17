@@ -75,7 +75,11 @@ const HighlightSection = () => {
       <Typography
         variant="h4"
         gutterBottom
-        sx={{ fontWeight: "bold", marginBottom: "20px" }}
+        sx={{
+          fontWeight: "bold",
+          marginBottom: "20px",
+          color: "#3251A1",
+        }}
       >
         Highlights
       </Typography>

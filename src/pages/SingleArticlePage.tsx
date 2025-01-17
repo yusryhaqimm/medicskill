@@ -71,12 +71,11 @@ const SingleArticlePage: React.FC = () => {
   return (
     <Box
       sx={{
-        padding: "20px",
+        padding: "40px 20px",
         maxWidth: "800px",
         margin: "0 auto",
-        backgroundColor: "#ffffff",
-        borderRadius: "8px",
-        boxShadow: "0px 2px 10px rgba(0, 0, 0, 0.1)",
+        borderRadius: "16px",
+        boxShadow: "0px 6px 12px rgba(0, 0, 0, 0.1)",
       }}
     >
       {/* Image Section */}
@@ -84,9 +83,9 @@ const SingleArticlePage: React.FC = () => {
         <Box
           sx={{
             marginBottom: "20px",
-            borderRadius: "8px",
+            borderRadius: "16px",
             overflow: "hidden",
-            maxHeight: "400px", // Constrain the height
+            maxHeight: "400px",
             maxWidth: "100%",
           }}
         >
@@ -97,6 +96,7 @@ const SingleArticlePage: React.FC = () => {
               width: "100%",
               height: "auto",
               objectFit: "cover",
+              borderRadius: "16px",
             }}
           />
         </Box>
@@ -107,7 +107,11 @@ const SingleArticlePage: React.FC = () => {
         variant="h4"
         fontWeight="bold"
         gutterBottom
-        sx={{ textAlign: "center", marginBottom: "20px" }}
+        sx={{
+          textAlign: "center",
+          marginBottom: "20px",
+          color: "#3251A1",
+        }}
       >
         {article.title}
       </Typography>
@@ -117,7 +121,10 @@ const SingleArticlePage: React.FC = () => {
         variant="body2"
         color="text.secondary"
         gutterBottom
-        sx={{ textAlign: "center" }}
+        sx={{
+          textAlign: "center",
+          fontStyle: "italic",
+        }}
       >
         {new Date(article.created_at).toLocaleDateString("en-US", {
           year: "numeric",
@@ -133,6 +140,7 @@ const SingleArticlePage: React.FC = () => {
             typography: "body1",
             lineHeight: 1.8,
             marginTop: "20px",
+            color: "#333",
           }}
           dangerouslySetInnerHTML={{ __html: article.content }}
         />

@@ -49,7 +49,6 @@ const ArticlesPage: React.FC = () => {
       sx={{
         padding: "40px 20px",
         minHeight: "100vh",
-        backgroundColor: "#f9f9f9",
         maxWidth: "1200px",
         margin: "0 auto",
       }}
@@ -68,17 +67,6 @@ const ArticlesPage: React.FC = () => {
         <Typography variant="h4" fontWeight="bold" color="#3251A1">
           Latest Blog Posts
         </Typography>
-        <Button
-          variant="contained"
-          sx={{
-            backgroundColor: "#3251A1",
-            color: "white",
-            "&:hover": { backgroundColor: "red" },
-          }}
-          size="large"
-        >
-          See All Blog Posts
-        </Button>
       </Box>
 
       {/* Article List */}
@@ -110,7 +98,7 @@ const ArticlesPage: React.FC = () => {
                   color="text.secondary"
                   gutterBottom
                 >
-                  {article.date} | {article.category}
+                  {article.date} {article.category}
                 </Typography>
                 <Typography
                   variant="h6"
@@ -129,10 +117,7 @@ const ArticlesPage: React.FC = () => {
                   variant="body2"
                   color="text.secondary"
                   sx={{ marginTop: "10px" }}
-                >
-                  {article.description?.substring(0, 100) ||
-                    "No description available."}
-                </Typography>
+                ></Typography>
               </CardContent>
               <Box sx={{ padding: "16px" }}>
                 <Button

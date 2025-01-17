@@ -237,7 +237,11 @@ const CoursesSection = () => {
       <Typography
         variant="h4"
         gutterBottom
-        sx={{ fontWeight: "bold", marginBottom: "20px" }}
+        sx={{
+          fontWeight: "bold",
+          marginBottom: "20px",
+          color: "#3251A1",
+        }}
       >
         Upcoming Courses
       </Typography>
@@ -347,8 +351,15 @@ const CoursesSection = () => {
         component={Link}
         to="/courses"
         variant="contained"
-        color="success"
-        sx={{ marginTop: "30px", textTransform: "none" }}
+        sx={{
+          marginTop: "30px",
+          textTransform: "none",
+          backgroundColor: "#3251A1",
+          color: "white",
+          "&:hover": {
+            backgroundColor: "#27408B", // Slightly darker shade for hover effect
+          },
+        }}
       >
         More Courses
       </Button>

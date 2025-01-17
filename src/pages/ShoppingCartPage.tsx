@@ -9,7 +9,7 @@ import {
   IconButton,
   CircularProgress,
 } from "@mui/material";
-import DeleteIcon from "@mui/icons-material/Delete";
+import DeleteIcon from "@mui/icons-material/close";
 import ClearAllIcon from "@mui/icons-material/ClearAll";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -251,7 +251,14 @@ const ShoppingCartPage = () => {
     <Box
       sx={{ padding: "20px", minHeight: "100vh", backgroundColor: "#f5f5f5" }}
     >
-      <Typography variant="h3" gutterBottom>
+      <Typography
+        variant="h3"
+        gutterBottom
+        sx={{
+          color: "#3251A1",
+          fontWeight: "bold", // Optional: Makes the text bold for better emphasis
+        }}
+      >
         Shopping Cart
       </Typography>
 
@@ -270,7 +277,14 @@ const ShoppingCartPage = () => {
         <Grid container spacing={4}>
           <Grid item xs={12} md={8}>
             {cart.length === 0 ? (
-              <Typography variant="h5" sx={{ textAlign: "center" }}>
+              <Typography
+                variant="h5"
+                sx={{
+                  textAlign: "center",
+                  color: "#3251A1",
+                  fontWeight: "bold",
+                }}
+              >
                 Your cart is empty
               </Typography>
             ) : (
@@ -279,61 +293,113 @@ const ShoppingCartPage = () => {
                   <Card
                     key={course.id}
                     sx={{
-                      marginBottom: "10px",
+                      marginBottom: "20px",
+                      position: "relative",
                       display: "flex",
                       alignItems: "center",
-                      backgroundColor: "#4CAF50",
-                      color: "white",
+                      borderRadius: "8px",
+                      backgroundColor: "#f5f5f5",
+                      border: "1px solid #ddd",
+                      overflow: "hidden",
                     }}
                   >
+                    {/* Delete Icon in Top-Right */}
+                    <IconButton
+                      onClick={() => removeCourse(course.id)}
+                      sx={{
+                        position: "absolute",
+                        top: "10px",
+                        right: "10px",
+                        color: "#FF7043",
+                        "&:hover": { backgroundColor: "#FFEDE7" },
+                      }}
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+
                     <CardMedia
                       component="img"
                       image={course.image || placeholderImage}
                       alt={course.title || "Course Image"}
-                      sx={{ width: "100px" }}
+                      sx={{
+                        width: "150px",
+                        height: "100%",
+                        objectFit: "cover",
+                      }}
                     />
                     <CardContent sx={{ flex: 1 }}>
-                      <Typography variant="h6">{course.title}</Typography>
-                      <Typography variant="body2">
+                      <Typography
+                        variant="h6"
+                        sx={{
+                          fontWeight: "bold",
+                          color: "#3251A1",
+                          marginBottom: "10px",
+                        }}
+                      >
+                        {course.title}
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          color: "#555",
+                          marginBottom: "8px",
+                        }}
+                      >
                         {course.shortDescription}
                       </Typography>
-                      <Typography variant="body2">
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          color: "#555",
+                          marginBottom: "8px",
+                        }}
+                      >
                         Location: {course.location}
                       </Typography>
-                      <Typography variant="body2">
-                        Address: {course.address}
-                      </Typography>
-                      <Typography variant="body2">
-                        Date: {course.date}
-                      </Typography>
-                    </CardContent>
-                    <Box
-                      sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "10px",
-                        paddingRight: "10px",
-                      }}
-                    >
-                      <Typography variant="h6">
-                        RM{course.price.toFixed(2)}
-                      </Typography>
-                      <IconButton
-                        onClick={() => removeCourse(course.id)}
-                        color="inherit"
+                      {/* Date and Price on the Same Row */}
+                      <Box
+                        sx={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          marginTop: "8px",
+                        }}
                       >
-                        <DeleteIcon />
-                      </IconButton>
-                    </Box>
+                        <Typography
+                          variant="body2"
+                          sx={{
+                            color: "#555",
+                          }}
+                        >
+                          Date: {course.date}
+                        </Typography>
+                        <Typography
+                          variant="body2"
+                          sx={{
+                            color: "#3251A1",
+                            fontWeight: "bold",
+                            fontSize: 18,
+                          }}
+                        >
+                          RM{course.price.toFixed(2)}
+                        </Typography>
+                      </Box>
+                    </CardContent>
                   </Card>
                 ))}
 
                 <Box sx={{ textAlign: "right", marginTop: "10px" }}>
                   <Button
-                    variant="contained"
-                    color="error"
+                    variant="outlined"
                     startIcon={<ClearAllIcon />}
                     onClick={clearCart}
+                    sx={{
+                      borderColor: "#FF7043",
+                      color: "#FF7043",
+                      "&:hover": {
+                        backgroundColor: "#FFEDE7",
+                        borderColor: "#FF7043",
+                      },
+                    }}
                   >
                     Clear All
                   </Button>
@@ -346,22 +412,49 @@ const ShoppingCartPage = () => {
             <Box
               sx={{
                 padding: "20px",
-                backgroundColor: "#e0e0e0",
                 borderRadius: "8px",
+                backgroundColor: "#3251A1",
+                color: "white",
               }}
             >
-              <Typography variant="h5" gutterBottom>
-                Total:
+              <Typography
+                variant="h5"
+                sx={{
+                  fontWeight: "bold",
+                  marginBottom: "20px",
+                }}
+              >
+                Order Summary
               </Typography>
-              <Typography variant="h4" sx={{ marginBottom: "20px" }}>
-                RM{totalPrice.toFixed(2)}
+              <Typography
+                variant="body1"
+                sx={{
+                  marginBottom: "10px",
+                  fontWeight: "bold",
+                }}
+              >
+                Total Items: {cart.length}
+              </Typography>
+              <Typography
+                variant="h4"
+                sx={{
+                  marginBottom: "20px",
+                  fontWeight: "bold",
+                }}
+              >
+                Total: RM{totalPrice.toFixed(2)}
               </Typography>
               <Button
                 variant="contained"
-                color="success"
                 fullWidth
                 disabled={cart.length === 0}
                 onClick={handleCheckout}
+                sx={{
+                  backgroundColor: "#43A047",
+                  color: "white",
+                  padding: "10px 0",
+                  "&:hover": { backgroundColor: "#3A943D" },
+                }}
               >
                 Checkout
               </Button>

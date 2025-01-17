@@ -1,4 +1,3 @@
-// src/components/AboutSection.tsx
 import { Box, Typography, Button } from "@mui/material";
 import { Link } from "react-router-dom";
 
@@ -12,29 +11,33 @@ const AboutSection = () => {
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat",
-        color: "white", // Default color for all text inside the Box
         display: "flex",
         alignItems: "center",
-        justifyContent: "center",
-        textAlign: "center",
-        padding: "40px 20px",
+        justifyContent: "flex-end", // Align content to the right
+        textAlign: "left",
+        padding: "40px",
+        color: "white",
       }}
     >
       <Box
         sx={{
-          maxWidth: "380px",
-          padding: "8px",
-          borderRadius: "8px",
-          marginLeft: "350px",
-          marginBottom: "80px",
+          maxWidth: "450px",
+          backgroundColor: "rgba(255, 255, 255, 0.9)", // Semi-transparent white background
+          padding: "30px",
+          borderRadius: "12px",
+          marginRight: "60px",
+          marginBottom: "60px", // Add margin from the right edge
         }}
       >
         <Typography
           variant="h4"
           component="h2"
           gutterBottom
-          sx={{ marginBottom: "20px" }}
-          style={{ color: "#3251A1" }}
+          sx={{
+            fontWeight: "bold",
+            color: "#3251A1",
+            marginBottom: "20px",
+          }}
         >
           About Medic Skill
         </Typography>
@@ -42,8 +45,11 @@ const AboutSection = () => {
         <Typography
           variant="body1"
           paragraph
-          sx={{ marginBottom: "20px" }}
-          style={{ color: "#3251A1" }}
+          sx={{
+            color: "#555",
+            lineHeight: 1.8,
+            marginBottom: "20px",
+          }}
         >
           At Medic Skill, we are committed to providing top-notch medical
           education and hands-on skill-based training. Our mission is to empower
@@ -55,8 +61,14 @@ const AboutSection = () => {
           component={Link}
           to="/about-us"
           variant="contained"
-          color="primary"
-          sx={{ textTransform: "none" }}
+          sx={{
+            backgroundColor: "#3251A1",
+            color: "white",
+            textTransform: "none",
+            "&:hover": {
+              backgroundColor: "#27408B", // Slightly darker shade for hover
+            },
+          }}
         >
           Read More
         </Button>
