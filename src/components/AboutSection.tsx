@@ -51,7 +51,7 @@ const AboutSection = () => {
             marginBottom: "20px",
           }}
         >
-          At Medic Skill, we are committed to providing top-notch medical
+          At MedicSkills, we are committed to providing top-notch medical
           education and hands-on skill-based training. Our mission is to empower
           healthcare professionals and students with the knowledge and skills
           they need to excel in their careers.
