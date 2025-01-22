@@ -6,27 +6,117 @@ const AboutSection = () => {
     <Box
       sx={{
         position: "relative",
-        height: "400px",
-        backgroundImage: `url('/src/assets/medic-skill-bg.jpg')`, // Replace with your image path
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
+        height: "auto",
+        background: "linear-gradient(135deg, #6a11cb, #2575fc)", // Gradient background
+        color: "white",
         display: "flex",
         alignItems: "center",
-        justifyContent: "flex-end", // Align content to the right
-        textAlign: "left",
-        padding: "40px",
-        color: "white",
+        justifyContent: "center",
+        padding: "60px 20px",
+        overflow: "hidden",
       }}
     >
+      {/* Animated Ambulance */}
       <Box
         sx={{
-          maxWidth: "450px",
-          backgroundColor: "rgba(255, 255, 255, 0.9)", // Semi-transparent white background
+          position: "absolute",
+          bottom: "20px",
+          width: "120px",
+          height: "60px",
+          backgroundColor: "#fff",
+          borderRadius: "10px",
+          boxShadow: "0 4px 10px rgba(0, 0, 0, 0.2)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          animation: "drive 5s linear infinite", // Continuous animation
+          "@keyframes drive": {
+            "0%": {
+              transform: "translateX(-150%)",
+            },
+            "100%": {
+              transform: "translateX(150%)",
+            },
+          },
+        }}
+      >
+        {/* Wheels */}
+        <Box
+          sx={{
+            position: "absolute",
+            bottom: "-10px",
+            left: "20px",
+            width: "20px",
+            height: "20px",
+            backgroundColor: "#000",
+            borderRadius: "50%",
+            boxShadow: "inset 0 0 5px rgba(0, 0, 0, 0.5)",
+            animation: "wheel-spin 1s linear infinite",
+            "@keyframes wheel-spin": {
+              "0%": {
+                transform: "rotate(0deg)",
+              },
+              "100%": {
+                transform: "rotate(360deg)",
+              },
+            },
+          }}
+        />
+        <Box
+          sx={{
+            position: "absolute",
+            bottom: "-10px",
+            right: "20px",
+            width: "20px",
+            height: "20px",
+            backgroundColor: "#000",
+            borderRadius: "50%",
+            boxShadow: "inset 0 0 5px rgba(0, 0, 0, 0.5)",
+            animation: "wheel-spin 1s linear infinite",
+          }}
+        />
+        {/* Red Cross */}
+        <Box
+          sx={{
+            position: "absolute",
+            top: "10px",
+            left: "20px",
+            width: "20px",
+            height: "20px",
+            backgroundColor: "#d32f2f",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Box
+            sx={{
+              width: "6px",
+              height: "20px",
+              backgroundColor: "white",
+            }}
+          />
+          <Box
+            sx={{
+              position: "absolute",
+              width: "20px",
+              height: "6px",
+              backgroundColor: "white",
+            }}
+          />
+        </Box>
+      </Box>
+
+      {/* Content Box */}
+      <Box
+        sx={{
+          maxWidth: "600px",
+          textAlign: "center",
           padding: "30px",
           borderRadius: "12px",
-          marginRight: "60px",
-          marginBottom: "60px", // Add margin from the right edge
+          boxShadow: "0px 4px 20px rgba(0, 0, 0, 0.2)",
+          backgroundColor: "rgba(255, 255, 255, 0.9)", // Slightly transparent background
+          zIndex: 2, // Ensure it stays above the ambulance
         }}
       >
         <Typography
@@ -65,8 +155,10 @@ const AboutSection = () => {
             backgroundColor: "#3251A1",
             color: "white",
             textTransform: "none",
+            padding: "10px 20px",
+            fontSize: "16px",
             "&:hover": {
-              backgroundColor: "#27408B", // Slightly darker shade for hover
+              backgroundColor: "#27408B",
             },
           }}
         >
