@@ -65,6 +65,37 @@ const PaymentGatewayPage = () => {
     setSelectedOption(id);
   };
 
+  // Trigger payment confirmation notification
+  const sendPaymentConfirmation = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        throw new Error("Authentication token is missing. Please log in.");
+      }
+
+      const response = await fetch(
+        `${API_BASE_URL}/notifications/payment-confirmation/${orderId}/`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || "Failed to send confirmation.");
+      }
+
+      const result = await response.json();
+      console.log("Confirmation response:", result.detail);
+    } catch (error: any) {
+      console.error("Confirmation failed:", error.message);
+    }
+  };
+
   // Handle payment confirmation
   const handlePayment = async () => {
     if (!selectedOption || !orderId) {
@@ -102,10 +133,15 @@ const PaymentGatewayPage = () => {
 
       const result = await response.json();
 
-      // Simulate successful payment and redirect to homepage
+      // Simulate successful payment
       setSnackbarMessage(result.message || "Payment successful!");
       setSnackbarSeverity("success");
-      setTimeout(() => navigate("/"), 2000); // Redirect to homepage after showing success message
+
+      // Trigger the payment confirmation notification
+      await sendPaymentConfirmation();
+
+      // Redirect to the homepage after success
+      setTimeout(() => navigate("/"), 2000);
     } catch (error: any) {
       console.error("Payment failed:", error.message);
       setSnackbarMessage(error.message || "An unexpected error occurred.");
