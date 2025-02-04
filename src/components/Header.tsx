@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   AppBar,
   Toolbar,
@@ -12,7 +12,6 @@ import {
   Typography,
   List,
   ListItem,
-  ListItemText,
   CircularProgress,
 } from "@mui/material";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
@@ -33,25 +32,6 @@ const Header = () => {
   const [notifications, setNotifications] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
-
-  // Open/close Contact Us menu
-  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleMenuClose = () => {
-    setAnchorEl(null);
-  };
-
-  // Open/close Notifications dropdown
-  const handleNotifOpen = (event: React.MouseEvent<HTMLElement>) => {
-    setNotifAnchorEl(event.currentTarget);
-    fetchNotifications();
-  };
-
-  const handleNotifClose = () => {
-    setNotifAnchorEl(null);
-  };
 
   // Fetch unread notifications
   const fetchNotifications = async () => {
@@ -79,6 +59,15 @@ const Header = () => {
       setLoading(false);
     }
   };
+
+  // Polling for notifications every 10 seconds
+  useEffect(() => {
+    if (isLoggedIn) {
+      fetchNotifications(); // Initial fetch
+      const interval = setInterval(fetchNotifications, 60000); // Poll every 10 seconds
+      return () => clearInterval(interval); // Cleanup on unmount
+    }
+  }, [isLoggedIn]);
 
   // Mark a notification as read
   const markAsRead = async (id: number) => {
@@ -140,32 +129,35 @@ const Header = () => {
           </Button>
 
           {/* Contact Us Dropdown */}
-          <Button color="inherit" onClick={handleMenuOpen}>
+          <Button color="inherit" onClick={(e) => setAnchorEl(e.currentTarget)}>
             Contact Us
           </Button>
           <Menu
             anchorEl={anchorEl}
             open={Boolean(anchorEl)}
-            onClose={handleMenuClose}
+            onClose={() => setAnchorEl(null)}
           >
             <MenuItem
               component={Link}
               to="/contact-us/inquiries"
-              onClick={handleMenuClose}
+              onClick={() => setAnchorEl(null)}
             >
               Inquiries
             </MenuItem>
             <MenuItem
               component={Link}
               to="/contact-us/join-as-trainer"
-              onClick={handleMenuClose}
+              onClick={() => setAnchorEl(null)}
             >
               Join as Trainer
             </MenuItem>
           </Menu>
 
           {/* Notification Bell with Badge */}
-          <IconButton color="inherit" onClick={handleNotifOpen}>
+          <IconButton
+            color="inherit"
+            onClick={(e) => setNotifAnchorEl(e.currentTarget)}
+          >
             <Badge badgeContent={unreadCount} color="error">
               <NotificationsIcon />
             </Badge>
@@ -173,7 +165,7 @@ const Header = () => {
           <Popover
             open={Boolean(notifAnchorEl)}
             anchorEl={notifAnchorEl}
-            onClose={handleNotifClose}
+            onClose={() => setNotifAnchorEl(null)}
             anchorOrigin={{
               vertical: "bottom",
               horizontal: "right",
@@ -182,7 +174,6 @@ const Header = () => {
               vertical: "top",
               horizontal: "right",
             }}
-            sx={{ width: "300px" }}
           >
             <Box sx={{ p: 2, width: "300px" }}>
               <Typography variant="h6" sx={{ mb: 2 }}>
@@ -199,13 +190,31 @@ const Header = () => {
                   {notifications.map((notification) => (
                     <ListItem
                       key={notification.id}
-                      component="button"
+                      component="div"
+                      sx={{
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "flex-start",
+                        backgroundColor: "#f9f9f9",
+                        border: "1px solid #ddd",
+                        borderRadius: "8px",
+                        marginBottom: "10px",
+                        padding: "10px",
+                        "&:hover": {
+                          backgroundColor: "#f1f1f1",
+                        },
+                      }}
                       onClick={() => markAsRead(notification.id)}
                     >
-                      <ListItemText
-                        primary={notification.title}
-                        secondary={notification.message}
-                      />
+                      <Typography
+                        variant="subtitle1"
+                        sx={{ fontWeight: "bold", marginBottom: "5px" }}
+                      >
+                        {notification.title}
+                      </Typography>
+                      <Typography variant="body2" sx={{ color: "#555" }}>
+                        {notification.message}
+                      </Typography>
                     </ListItem>
                   ))}
                 </List>

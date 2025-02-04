@@ -8,9 +8,13 @@ import {
   Paper,
   Alert,
   Typography,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from "@mui/material";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 const BASE_URL = "http://127.0.0.1:8000/api/accounts";
@@ -29,6 +33,56 @@ const LoginRegisterPage = () => {
   const [loading, setLoading] = useState(false); // Loading state for button
   const { login } = useAuth(); // Access login function from AuthContext
   const navigate = useNavigate();
+  const [successMessage, setSuccessMessage] = useState<string>("");
+
+  // Forgot Password State
+  const [forgotPasswordEmail, setForgotPasswordEmail] = useState("");
+  const [isForgotPasswordOpen, setIsForgotPasswordOpen] = useState(false);
+  const [forgotPasswordMessage, setForgotPasswordMessage] = useState("");
+
+  const [resendDisabled, setResendDisabled] = useState(true);
+  const [resendTimer, setResendTimer] = useState(120); // 120 seconds = 2 minutes
+
+  const startResendTimer = () => {
+    const timer = setInterval(() => {
+      setResendTimer((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          setResendDisabled(false);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
+
+  // Open/Close Forgot Password Dialog
+  const openForgotPasswordDialog = () => setIsForgotPasswordOpen(true);
+  const closeForgotPasswordDialog = () => {
+    setForgotPasswordEmail("");
+    setForgotPasswordMessage("");
+    setIsForgotPasswordOpen(false);
+  };
+
+  // Handle Forgot Password Request
+  const handleForgotPassword = async () => {
+    setForgotPasswordMessage("");
+    try {
+      const response = await axios.post(`${BASE_URL}/password-reset/`, {
+        email: forgotPasswordEmail,
+      });
+      if (response.status === 200) {
+        setForgotPasswordMessage(
+          "A password reset link has been sent to your email."
+        );
+      }
+    } catch (err: any) {
+      setForgotPasswordMessage(
+        err.response?.data?.error ||
+          "Failed to send reset link. Please try again."
+      );
+    }
+  };
 
   const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
@@ -53,6 +107,13 @@ const LoginRegisterPage = () => {
     });
     setStep("form");
   };
+
+  interface LocationState {
+    redirectTo?: string;
+  }
+
+  const location = useLocation();
+  const locationState = location.state as LocationState | null;
 
   const handleSubmit = async () => {
     setErrorMessage("");
@@ -92,11 +153,18 @@ const LoginRegisterPage = () => {
           // Login success
           localStorage.setItem("token", response.data.access);
           login();
-          navigate("/");
+          const redirectTo = locationState?.redirectTo || "/";
+          navigate(redirectTo);
         } else if (step === "form") {
           // Registration success, move to OTP step
           setStep("otp");
-          setErrorMessage("A verification OTP has been sent to your email.");
+          setSuccessMessage("A verification OTP has been sent to your email.");
+          setErrorMessage(""); // Clear any previous errors
+
+          // Start countdown when OTP is sent
+          setResendDisabled(true);
+          setResendTimer(120);
+          startResendTimer();
         } else if (step === "otp") {
           // OTP verified
           setErrorMessage("");
@@ -112,6 +180,26 @@ const LoginRegisterPage = () => {
       );
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResendOTP = async () => {
+    try {
+      const response = await axios.post(`${BASE_URL}/resend-otp/`, {
+        email: formData.email,
+      });
+      if (response.status === 200) {
+        setErrorMessage("A new OTP has been sent to your email.");
+
+        // Restart the timer
+        setResendDisabled(true);
+        setResendTimer(120);
+        startResendTimer();
+      }
+    } catch (err: any) {
+      setErrorMessage(
+        err.response?.data?.error || "Failed to resend OTP. Please try again."
+      );
     }
   };
 
@@ -159,6 +247,7 @@ const LoginRegisterPage = () => {
             }}
           />
         </Tabs>
+        {successMessage && <Alert severity="success">{successMessage}</Alert>}
 
         {errorMessage && (
           <Alert severity="error" sx={{ marginBottom: 2 }}>
@@ -171,40 +260,53 @@ const LoginRegisterPage = () => {
             <>
               <Typography
                 variant="h6"
-                sx={{ marginBottom: 2, color: "#3251A1", fontWeight: "bold" }}
+                sx={{ textAlign: "center", color: "#3251A1" }}
               >
                 Verify Your Email
               </Typography>
+              <Typography
+                variant="body2"
+                sx={{ textAlign: "center", marginBottom: 2 }}
+              >
+                Enter the 6-digit OTP sent to your email.
+              </Typography>
               <TextField
-                label="OTP"
+                label="Enter OTP"
                 name="otp"
                 type="text"
                 fullWidth
                 value={formData.otp}
                 onChange={handleInputChange}
-                sx={{
-                  marginBottom: 3,
-                  "& .MuiOutlinedInput-root": {
-                    "& fieldset": { borderColor: "#3251A1" },
-                    "&:hover fieldset": { borderColor: "red" },
-                    "&.Mui-focused fieldset": { borderColor: "#3251A1" },
-                  },
-                }}
+                sx={{ marginBottom: 3 }}
               />
               <Button
                 variant="contained"
                 fullWidth
                 onClick={handleSubmit}
                 disabled={loading}
-                sx={{
-                  backgroundColor: "#3251A1",
-                  color: "white",
-                  padding: "10px 0",
-                  "&:hover": { backgroundColor: "red" },
-                }}
               >
                 {loading ? "Verifying..." : "Verify OTP"}
               </Button>
+
+              {/* 🔹 Resend OTP Section */}
+              <Typography
+                variant="body2"
+                sx={{ textAlign: "center", marginTop: 2 }}
+              >
+                Didn't receive the OTP?{" "}
+                <span
+                  onClick={resendDisabled ? undefined : handleResendOTP}
+                  style={{
+                    color: resendDisabled ? "#AAA" : "#3251A1",
+                    fontWeight: "bold",
+                    cursor: resendDisabled ? "default" : "pointer",
+                  }}
+                >
+                  {resendDisabled
+                    ? `Resend OTP in ${resendTimer}s`
+                    : "Resend OTP"}
+                </span>
+              </Typography>
             </>
           ) : (
             <>
@@ -247,6 +349,23 @@ const LoginRegisterPage = () => {
                   sx={{ marginBottom: 3 }}
                 />
               )}
+
+              {tabValue === 0 && (
+                <Typography
+                  variant="body2"
+                  sx={{
+                    textAlign: "right",
+                    color: "#3251A1",
+                    cursor: "pointer",
+                    marginBottom: 2,
+                    "&:hover": { textDecoration: "underline" },
+                  }}
+                  onClick={openForgotPasswordDialog}
+                >
+                  Forgot Password?
+                </Typography>
+              )}
+
               <Typography
                 variant="body2"
                 sx={{
@@ -277,6 +396,86 @@ const LoginRegisterPage = () => {
           )}
         </Box>
       </Paper>
+
+      {/* 🔹 Forgot Password Dialog */}
+      <Dialog
+        open={isForgotPasswordOpen}
+        onClose={closeForgotPasswordDialog}
+        sx={{
+          "& .MuiPaper-root": {
+            borderRadius: "12px",
+            padding: "20px",
+            width: "100%",
+            maxWidth: "420px",
+          },
+        }}
+      >
+        <DialogTitle
+          sx={{ textAlign: "center", fontWeight: "bold", color: "#3251A1" }}
+        >
+          Reset Your Password
+        </DialogTitle>
+        <DialogContent sx={{ textAlign: "center" }}>
+          <Typography variant="body2" sx={{ marginBottom: 2, color: "#555" }}>
+            Enter your email below, and we'll send you a link to reset your
+            password.
+          </Typography>
+          <TextField
+            label="Email Address"
+            variant="outlined"
+            fullWidth
+            value={forgotPasswordEmail}
+            onChange={(e) => setForgotPasswordEmail(e.target.value)}
+            sx={{
+              marginBottom: 2,
+              "& .MuiOutlinedInput-root": {
+                "& fieldset": { borderColor: "#3251A1" },
+                "&:hover fieldset": { borderColor: "#FF6347" },
+                "&.Mui-focused fieldset": { borderColor: "#3251A1" },
+              },
+            }}
+          />
+          {forgotPasswordMessage && (
+            <Alert
+              severity="info"
+              sx={{
+                marginTop: 2,
+                backgroundColor: "#E3F2FD",
+                color: "#1E88E5",
+              }}
+            >
+              {forgotPasswordMessage}
+            </Alert>
+          )}
+        </DialogContent>
+        <DialogActions
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            padding: "16px",
+          }}
+        >
+          <Button
+            onClick={closeForgotPasswordDialog}
+            sx={{ color: "#777", "&:hover": { color: "#333" } }}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleForgotPassword}
+            variant="contained"
+            sx={{
+              backgroundColor: "#3251A1",
+              color: "white",
+              padding: "8px 20px",
+              borderRadius: "8px",
+              "&:hover": { backgroundColor: "#FF6347" },
+            }}
+          >
+            Send Reset Link
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

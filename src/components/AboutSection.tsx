@@ -40,6 +40,38 @@ const AboutSection = () => {
           },
         }}
       >
+        {/* Dark Blue Section on Top of the Van */}
+        <Box
+          sx={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "20px",
+            backgroundColor: "#3251A1", // Dark blue color
+            borderTopLeftRadius: "10px",
+            borderTopRightRadius: "10px",
+          }}
+        />
+
+        {/* Text on the Ambulance */}
+        <Typography
+          variant="caption"
+          sx={{
+            position: "absolute",
+            top: "25px", // Adjusted to fit below the dark blue section
+            left: "50%",
+            transform: "translateX(-50%)",
+            fontSize: "0.6rem",
+            fontWeight: "bold",
+            color: "#d32f2f", // Red color for visibility
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+          }}
+        >
+          MedicSkills on the go
+        </Typography>
+
         {/* Wheels */}
         <Box
           sx={{
@@ -75,36 +107,6 @@ const AboutSection = () => {
             animation: "wheel-spin 1s linear infinite",
           }}
         />
-        {/* Red Cross */}
-        <Box
-          sx={{
-            position: "absolute",
-            top: "10px",
-            left: "20px",
-            width: "20px",
-            height: "20px",
-            backgroundColor: "#d32f2f",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <Box
-            sx={{
-              width: "6px",
-              height: "20px",
-              backgroundColor: "white",
-            }}
-          />
-          <Box
-            sx={{
-              position: "absolute",
-              width: "20px",
-              height: "6px",
-              backgroundColor: "white",
-            }}
-          />
-        </Box>
       </Box>
 
       {/* Content Box */}
@@ -116,7 +118,8 @@ const AboutSection = () => {
           borderRadius: "12px",
           boxShadow: "0px 4px 20px rgba(0, 0, 0, 0.2)",
           backgroundColor: "rgba(255, 255, 255, 0.9)", // Slightly transparent background
-          zIndex: 2, // Ensure it stays above the ambulance
+          zIndex: 1, // Lower z-index to ensure the ambulance is visible
+          marginBottom: "100px", // Added margin to avoid overlapping with the ambulance
         }}
       >
         <Typography
@@ -129,7 +132,7 @@ const AboutSection = () => {
             marginBottom: "20px",
           }}
         >
-          About Medic Skill
+          About MedicSkills
         </Typography>
 
         <Typography

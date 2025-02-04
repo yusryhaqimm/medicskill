@@ -202,9 +202,10 @@ const ShoppingCartPage = () => {
   // Handle checkout
   const handleCheckout = async () => {
     if (!isLoggedIn) {
-      navigate("/checkout-options", {
-        state: { redirectTo: "/shopping-cart" },
-      });
+      alert(
+        "You need to log in to proceed with checkout. Redirecting to login..."
+      );
+      navigate("/login", { state: { redirectTo: "/shopping-cart" } });
       return;
     }
 
