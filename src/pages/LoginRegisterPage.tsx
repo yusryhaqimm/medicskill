@@ -117,6 +117,7 @@ const LoginRegisterPage = () => {
 
   const handleSubmit = async () => {
     setErrorMessage("");
+    setSuccessMessage("");
 
     if (
       tabValue === 1 &&
@@ -133,6 +134,7 @@ const LoginRegisterPage = () => {
         : step === "form"
         ? `${BASE_URL}/register/`
         : `${BASE_URL}/verify-otp/`;
+
     const payload =
       tabValue === 0
         ? { username: formData.username, password: formData.password }
@@ -145,13 +147,15 @@ const LoginRegisterPage = () => {
         : { email: formData.email, otp: formData.otp };
 
     setLoading(true);
+
     try {
       const response = await axios.post(endpoint, payload);
 
       if (response.status === 200 || response.status === 201) {
         if (tabValue === 0) {
           // Login success
-          localStorage.setItem("token", response.data.access);
+          const token = response.data.access;
+          localStorage.setItem("token", token); // Save token only during login
           login();
           const redirectTo = locationState?.redirectTo || "/";
           navigate(redirectTo);
@@ -167,6 +171,46 @@ const LoginRegisterPage = () => {
           startResendTimer();
         } else if (step === "otp") {
           // OTP verified
+          console.log(
+            "OTP verified successfully, attempting to hit notification endpoint..."
+          );
+          const token = response.data?.access; // Extract token from OTP response
+
+          if (token) {
+            console.log("Temporary token for admin notification:", token);
+
+            // Notify admin about the new user registration
+            try {
+              const notifyResponse = await axios.post(
+                "http://127.0.0.1:8000/api/notifications/new-user-registration/",
+                {},
+                {
+                  headers: {
+                    Authorization: `Bearer ${token}`,
+                  },
+                }
+              );
+              console.log("Admin notified successfully:", notifyResponse.data);
+
+              setSuccessMessage(
+                "Your account has been verified, and the admin has been notified. You can now log in."
+              );
+            } catch (notifyError) {
+              console.error(
+                "Failed to notify admin:",
+                notifyError.response?.data || notifyError
+              );
+              setSuccessMessage(
+                "Your account has been verified. You can now log in, but admin notification failed."
+              );
+            }
+          } else {
+            console.warn(
+              "No token received after OTP verification. Unable to notify admin."
+            );
+          }
+
+          // Reset form and switch to login tab
           setErrorMessage("");
           setTabValue(0); // Switch to login tab
           resetForm();
@@ -189,7 +233,8 @@ const LoginRegisterPage = () => {
         email: formData.email,
       });
       if (response.status === 200) {
-        setErrorMessage("A new OTP has been sent to your email.");
+        setErrorMessage("");
+        setSuccessMessage("A new OTP has been sent to your email.");
 
         // Restart the timer
         setResendDisabled(true);
