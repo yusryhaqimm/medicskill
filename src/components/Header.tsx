@@ -62,6 +62,7 @@ const Header = () => {
 
   // Polling for notifications every 10 seconds
   useEffect(() => {
+    console.log("isLoggedIn:", isLoggedIn);
     if (isLoggedIn) {
       fetchNotifications(); // Initial fetch
       const interval = setInterval(fetchNotifications, 60000); // Poll every 10 seconds

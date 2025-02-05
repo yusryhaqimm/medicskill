@@ -1,20 +1,25 @@
 import React, { createContext, useState, useContext } from "react";
 
+// Define the AuthContext type
 interface AuthContextType {
   isLoggedIn: boolean;
   login: () => Promise<void>;
   logout: () => void;
+  setIsLoggedIn: (value: boolean) => void;
 }
 
+// Create the AuthContext
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
+  // State to track login status
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(
     !!localStorage.getItem("token")
   );
 
+  // Function to handle login
   const login = async () => {
     const token = localStorage.getItem("token");
 
@@ -57,6 +62,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
+  // Function to handle logout
   const logout = () => {
     // Clear all authentication-related storage
     localStorage.removeItem("token");
@@ -66,12 +72,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   return (
-    <AuthContext.Provider value={{ isLoggedIn, login, logout }}>
+    <AuthContext.Provider value={{ isLoggedIn, login, logout, setIsLoggedIn }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
+// Export AuthContext for direct use
+export { AuthContext };
+
+// Custom hook for consuming AuthContext
 export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
   if (!context) {

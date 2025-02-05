@@ -75,6 +75,11 @@ const LoginRegisterPage = () => {
         setForgotPasswordMessage(
           "A password reset link has been sent to your email."
         );
+
+        // Close the modal after 2 seconds
+        setTimeout(() => {
+          setIsForgotPasswordOpen(false); // Close the modal
+        }, 2000);
       }
     } catch (err: any) {
       setForgotPasswordMessage(
@@ -196,10 +201,18 @@ const LoginRegisterPage = () => {
                 "Your account has been verified, and the admin has been notified. You can now log in."
               );
             } catch (notifyError) {
-              console.error(
-                "Failed to notify admin:",
-                notifyError.response?.data || notifyError
-              );
+              // Inside your catch block
+              if (axios.isAxiosError(notifyError)) {
+                // Axios-specific error handling
+                console.error(
+                  "Failed to notify admin:",
+                  notifyError.response?.data || notifyError.message
+                );
+              } else {
+                // Generic error handling
+                console.error("An unexpected error occurred:", notifyError);
+              }
+
               setSuccessMessage(
                 "Your account has been verified. You can now log in, but admin notification failed."
               );

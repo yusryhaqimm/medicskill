@@ -1,26 +1,34 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { CartProvider } from "./context/CartContext";
-import { AuthProvider } from "./context/AuthContext";
 import { CssBaseline } from "@mui/material";
 
+// Context Providers
+import { AuthProvider } from "./context/AuthContext";
+import { CartProvider } from "./context/CartContext";
+
+// Layout Components
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 
-// Import Pages
+// Public Pages
 import HomePage from "./pages/HomePage";
-import CoursesPage from "./pages/CoursesPage";
-import TrainersPage from "./pages/TrainersPage";
-import InquiriesPage from "./pages/InquiriesPage";
-import JoinAsTrainerPage from "./pages/JoinAsTrainerPage";
-import ShoppingCartPage from "./pages/ShoppingCartPage";
 import AboutUsPage from "./pages/AboutUsPage";
 import ArticlesPage from "./pages/ArticlesPage";
 import SingleArticlePage from "./pages/SingleArticlePage";
+import InquiriesPage from "./pages/InquiriesPage";
+import JoinAsTrainerPage from "./pages/JoinAsTrainerPage";
+import TrainersPage from "./pages/TrainersPage";
+import CoursesPage from "./pages/CoursesPage";
+
+// Shopping Flow
+import ShoppingCartPage from "./pages/ShoppingCartPage";
+import CheckoutOptionPage from "./pages/CheckoutOptionPage";
 import RegistrationPage from "./pages/RegistrationPage";
 import PaymentGatewayPage from "./pages/PaymentGatewayPage";
+
+// User Account Pages
 import LoginRegisterPage from "./pages/LoginRegisterPage";
 import ProfilePage from "./pages/ProfilePage";
-import CheckoutOptionPage from "./pages/CheckoutOptionPage"; // Import CheckoutOptionPage
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 
 function App() {
   return (
@@ -52,6 +60,10 @@ function App() {
             {/* User Account Pages */}
             <Route path="/login" element={<LoginRegisterPage />} />
             <Route path="/profile" element={<ProfilePage />} />
+            <Route
+              path="/reset-password/:uid/:token"
+              element={<ResetPasswordPage />}
+            />
           </Routes>
           <Footer />
         </Router>
